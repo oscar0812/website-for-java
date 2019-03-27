@@ -50,8 +50,13 @@ $(function() {
     e.preventDefault();
   });
 
+  prevTxt = "";
   $('nav .form-inline input').on('input keyup', function() {
     txt = $(this).val();
+    if(txt == prevTxt){
+      return false;
+    }
+    prevTxt = txt;
     console.log(txt);
 
     $('.list-group-item').each(function() {
