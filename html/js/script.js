@@ -25,6 +25,28 @@ $(function() {
     actionTextColor: '#00FF00',
     text: "Updated"
   });
-  
+
   */
+
+  //----- OPEN
+  $('[pd-popup-open]').on('click', function(e) {
+    var targeted_popup_class = $(this).attr('pd-popup-open');
+    popup = $('[pd-popup="' + targeted_popup_class + '"]');
+    popup.removeClass('invisible');
+    popup.fadeIn(100);
+
+
+    e.preventDefault();
+  });
+
+  //----- CLOSE
+  $('[pd-popup-close]').on('click', function(e) {
+    var targeted_popup_class = $(this).attr('pd-popup-close');
+    popup = $('[pd-popup="' + targeted_popup_class + '"]');
+    popup.fadeOut(100, function() {
+      popup.addClass('invisible');
+    });
+
+    e.preventDefault();
+  });
 });

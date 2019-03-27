@@ -1,7 +1,5 @@
-.list-group-item span {
-  display: inline-block;
-  vertical-align: middle;
-  float: none;
+.invisible {
+  display: none !important;
 }
 
 /* ============= 6. Margin Padding 0 ============= */

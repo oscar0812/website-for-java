@@ -32,11 +32,19 @@
     </div>
   </nav>
   <div class="container">
-    <ul class="list-group mt-20" id="sortable" data-url="<?=$router->pathFor('item-dropped')?>">
+    <div class="row mt-20">
+      <div class="custom-control custom-switch">
+      <input type="checkbox" class="custom-control-input" id="switch" name="name">
+      <label class="custom-control-label" for="switch">Toggle me</label>
+    </div>
+    </div>
+    <ul class="list-group mt-20 row" id="sortable" data-url="<?=$router->pathFor('item-dropped')?>">
       <?php foreach($scenes as $scene) { ?>
-      <li class="list-group-item" data-id="<?=$scene->getId()?>">
-        <span><?=$scene->getText()?></span>
-        <div class="btn-group float-sm-right">
+      <li class="list-group-item row" data-id="<?=$scene->getId()?>">
+        <div class="float-sm-left col-sm-9">
+          <p><?=$scene->getText()?></p>
+        </div>
+        <div class="btn-group float-sm-right col-sm-3">
           <button class="align-middle btn btn-warning">Edit</button>
           <button class="align-middle btn btn-danger">Delete</button>
         </div>
@@ -44,6 +52,30 @@
       <?php } ?>
     </ul>
   </div>
+
+  <div class="invisible popup" pd-popup="addNewPerfume">
+  <div class="popup-inner">
+    <div class="row">
+      <h2>Add New Perfume
+    </div>
+    <form id="add-new-perfume" class="row inner-scroll" method="POST" action="">
+      <div class="col-md-12 col-sm-12">
+        <div class="row">
+          <p class="form-row col-sm-6">
+            <label for="name">Name<abbr title="required" class="required">*</abbr></label>
+            <input type="text" name="Perfume[name]" id="name" class="form-controller">
+          </p>
+          <p class="form-row col-sm-6">
+            <label for="price">Price<abbr title="required" class="required">*</abbr></label>
+            <input type="text" name="Perfume[price]" id="price" class="form-controller">
+          </p>
+        </div>
+      </div>
+    </form>
+    <button class="btn btn-lg btn-success" type="submit">Submit</button>
+    <a class="popup-close" pd-popup-close="addNewPerfume" href="#"> </a>
+  </div>
+</div>
 
   <script src="js/jquery.min.js"></script>
   <script src="js/jquery-ui.js"></script>
