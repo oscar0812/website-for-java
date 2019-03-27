@@ -49,4 +49,19 @@ $(function() {
 
     e.preventDefault();
   });
+
+  $('nav .form-inline input').on('input keyup', function() {
+    txt = $(this).val();
+    console.log(txt);
+
+    $('.list-group-item').each(function() {
+      if ($(this).text().toUpperCase().indexOf(txt.toUpperCase()) != -1) {
+        $(this).show();
+      } else {
+        $(this).hide();
+      }
+    });
+
+    return false;
+  })
 });
