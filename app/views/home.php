@@ -6,6 +6,7 @@
   <title></title>
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/snackbar.min.css">
+  <link rel="stylesheet" href="css/font-awesome.min.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -30,7 +31,7 @@
       </form>
     </div>
   </nav>
-  <div class="container">
+  <div class="container mt-20">
     <div class="sticky-top mpt-5">
       <div class="card">
         <div class="card-body row">
@@ -50,8 +51,9 @@
     <ul class="list-group mt-20 row" id="sortable" data-url="<?=$router->pathFor('item-dropped')?>">
       <?php foreach($scenes as $scene) { ?>
       <li class="list-group-item row" data-id="<?=$scene->getId()?>">
+
         <div class="float-sm-left col-sm-9">
-          <p>
+          <p><i class="fa fa-arrows"></i>
             <?=$scene->getText()?>
           </p>
         </div>

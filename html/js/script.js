@@ -1,5 +1,6 @@
 $(function() {
   $("#sortable").sortable({
+    handle: '.fa-arrows',
     update: function(item, ui) {
       item = $(ui.item);
 
