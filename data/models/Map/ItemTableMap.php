@@ -2,8 +2,8 @@
 
 namespace Map;
 
-use \Scene;
-use \SceneQuery;
+use \Item;
+use \ItemQuery;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\InstancePoolTrait;
@@ -16,7 +16,7 @@ use Propel\Runtime\Map\TableMapTrait;
 
 
 /**
- * This class defines the structure of the 'scene' table.
+ * This class defines the structure of the 'item' table.
  *
  *
  *
@@ -26,7 +26,7 @@ use Propel\Runtime\Map\TableMapTrait;
  * (i.e. if it's a text column type).
  *
  */
-class SceneTableMap extends TableMap
+class ItemTableMap extends TableMap
 {
     use InstancePoolTrait;
     use TableMapTrait;
@@ -34,7 +34,7 @@ class SceneTableMap extends TableMap
     /**
      * The (dot-path) name of this class
      */
-    const CLASS_NAME = '.Map.SceneTableMap';
+    const CLASS_NAME = '.Map.ItemTableMap';
 
     /**
      * The default database name for this class
@@ -44,22 +44,22 @@ class SceneTableMap extends TableMap
     /**
      * The table name for this class
      */
-    const TABLE_NAME = 'scene';
+    const TABLE_NAME = 'item';
 
     /**
      * The related Propel class for this table
      */
-    const OM_CLASS = '\\Scene';
+    const OM_CLASS = '\\Item';
 
     /**
      * A class that can be returned by this tableMap
      */
-    const CLASS_DEFAULT = 'Scene';
+    const CLASS_DEFAULT = 'Item';
 
     /**
      * The total number of columns
      */
-    const NUM_COLUMNS = 5;
+    const NUM_COLUMNS = 3;
 
     /**
      * The number of lazy-loaded columns
@@ -69,32 +69,22 @@ class SceneTableMap extends TableMap
     /**
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
-    const NUM_HYDRATE_COLUMNS = 5;
+    const NUM_HYDRATE_COLUMNS = 3;
 
     /**
      * the column name for the id field
      */
-    const COL_ID = 'scene.id';
+    const COL_ID = 'item.id';
 
     /**
-     * the column name for the item_id field
+     * the column name for the name field
      */
-    const COL_ITEM_ID = 'scene.item_id';
-
-    /**
-     * the column name for the trap_id field
-     */
-    const COL_TRAP_ID = 'scene.trap_id';
+    const COL_NAME = 'item.name';
 
     /**
      * the column name for the description field
      */
-    const COL_DESCRIPTION = 'scene.description';
-
-    /**
-     * the column name for the placement field
-     */
-    const COL_PLACEMENT = 'scene.placement';
+    const COL_DESCRIPTION = 'item.description';
 
     /**
      * The default string format for model objects of the related table
@@ -108,11 +98,11 @@ class SceneTableMap extends TableMap
      * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        self::TYPE_PHPNAME       => array('Id', 'ItemId', 'TrapId', 'Description', 'Placement', ),
-        self::TYPE_CAMELNAME     => array('id', 'itemId', 'trapId', 'description', 'placement', ),
-        self::TYPE_COLNAME       => array(SceneTableMap::COL_ID, SceneTableMap::COL_ITEM_ID, SceneTableMap::COL_TRAP_ID, SceneTableMap::COL_DESCRIPTION, SceneTableMap::COL_PLACEMENT, ),
-        self::TYPE_FIELDNAME     => array('id', 'item_id', 'trap_id', 'description', 'placement', ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, )
+        self::TYPE_PHPNAME       => array('Id', 'Name', 'Description', ),
+        self::TYPE_CAMELNAME     => array('id', 'name', 'description', ),
+        self::TYPE_COLNAME       => array(ItemTableMap::COL_ID, ItemTableMap::COL_NAME, ItemTableMap::COL_DESCRIPTION, ),
+        self::TYPE_FIELDNAME     => array('id', 'name', 'description', ),
+        self::TYPE_NUM           => array(0, 1, 2, )
     );
 
     /**
@@ -122,11 +112,11 @@ class SceneTableMap extends TableMap
      * e.g. self::$fieldKeys[self::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        self::TYPE_PHPNAME       => array('Id' => 0, 'ItemId' => 1, 'TrapId' => 2, 'Description' => 3, 'Placement' => 4, ),
-        self::TYPE_CAMELNAME     => array('id' => 0, 'itemId' => 1, 'trapId' => 2, 'description' => 3, 'placement' => 4, ),
-        self::TYPE_COLNAME       => array(SceneTableMap::COL_ID => 0, SceneTableMap::COL_ITEM_ID => 1, SceneTableMap::COL_TRAP_ID => 2, SceneTableMap::COL_DESCRIPTION => 3, SceneTableMap::COL_PLACEMENT => 4, ),
-        self::TYPE_FIELDNAME     => array('id' => 0, 'item_id' => 1, 'trap_id' => 2, 'description' => 3, 'placement' => 4, ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, )
+        self::TYPE_PHPNAME       => array('Id' => 0, 'Name' => 1, 'Description' => 2, ),
+        self::TYPE_CAMELNAME     => array('id' => 0, 'name' => 1, 'description' => 2, ),
+        self::TYPE_COLNAME       => array(ItemTableMap::COL_ID => 0, ItemTableMap::COL_NAME => 1, ItemTableMap::COL_DESCRIPTION => 2, ),
+        self::TYPE_FIELDNAME     => array('id' => 0, 'name' => 1, 'description' => 2, ),
+        self::TYPE_NUM           => array(0, 1, 2, )
     );
 
     /**
@@ -139,18 +129,16 @@ class SceneTableMap extends TableMap
     public function initialize()
     {
         // attributes
-        $this->setName('scene');
-        $this->setPhpName('Scene');
+        $this->setName('item');
+        $this->setPhpName('Item');
         $this->setIdentifierQuoting(false);
-        $this->setClassName('\\Scene');
+        $this->setClassName('\\Item');
         $this->setPackage('');
         $this->setUseIdGenerator(true);
         // columns
         $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
-        $this->addForeignKey('item_id', 'ItemId', 'INTEGER', 'item', 'id', true, null, null);
-        $this->addForeignKey('trap_id', 'TrapId', 'INTEGER', 'trap', 'id', true, null, null);
-        $this->addColumn('description', 'Description', 'VARCHAR', true, 16384, null);
-        $this->addColumn('placement', 'Placement', 'INTEGER', true, null, null);
+        $this->addColumn('name', 'Name', 'VARCHAR', true, 128, null);
+        $this->addColumn('description', 'Description', 'VARCHAR', true, 2048, null);
     } // initialize()
 
     /**
@@ -158,20 +146,13 @@ class SceneTableMap extends TableMap
      */
     public function buildRelations()
     {
-        $this->addRelation('Item', '\\Item', RelationMap::MANY_TO_ONE, array (
+        $this->addRelation('Scene', '\\Scene', RelationMap::ONE_TO_MANY, array (
   0 =>
   array (
     0 => ':item_id',
     1 => ':id',
   ),
-), null, null, null, false);
-        $this->addRelation('Trap', '\\Trap', RelationMap::MANY_TO_ONE, array (
-  0 =>
-  array (
-    0 => ':trap_id',
-    1 => ':id',
-  ),
-), null, null, null, false);
+), null, null, 'Scenes', false);
     } // buildRelations()
 
     /**
@@ -231,7 +212,7 @@ class SceneTableMap extends TableMap
      */
     public static function getOMClass($withPrefix = true)
     {
-        return $withPrefix ? SceneTableMap::CLASS_DEFAULT : SceneTableMap::OM_CLASS;
+        return $withPrefix ? ItemTableMap::CLASS_DEFAULT : ItemTableMap::OM_CLASS;
     }
 
     /**
@@ -245,22 +226,22 @@ class SceneTableMap extends TableMap
      *
      * @throws PropelException Any exceptions caught during processing will be
      *                         rethrown wrapped into a PropelException.
-     * @return array           (Scene object, last column rank)
+     * @return array           (Item object, last column rank)
      */
     public static function populateObject($row, $offset = 0, $indexType = TableMap::TYPE_NUM)
     {
-        $key = SceneTableMap::getPrimaryKeyHashFromRow($row, $offset, $indexType);
-        if (null !== ($obj = SceneTableMap::getInstanceFromPool($key))) {
+        $key = ItemTableMap::getPrimaryKeyHashFromRow($row, $offset, $indexType);
+        if (null !== ($obj = ItemTableMap::getInstanceFromPool($key))) {
             // We no longer rehydrate the object, since this can cause data loss.
             // See http://www.propelorm.org/ticket/509
             // $obj->hydrate($row, $offset, true); // rehydrate
-            $col = $offset + SceneTableMap::NUM_HYDRATE_COLUMNS;
+            $col = $offset + ItemTableMap::NUM_HYDRATE_COLUMNS;
         } else {
-            $cls = SceneTableMap::OM_CLASS;
-            /** @var Scene $obj */
+            $cls = ItemTableMap::OM_CLASS;
+            /** @var Item $obj */
             $obj = new $cls();
             $col = $obj->hydrate($row, $offset, false, $indexType);
-            SceneTableMap::addInstanceToPool($obj, $key);
+            ItemTableMap::addInstanceToPool($obj, $key);
         }
 
         return array($obj, $col);
@@ -283,18 +264,18 @@ class SceneTableMap extends TableMap
         $cls = static::getOMClass(false);
         // populate the object(s)
         while ($row = $dataFetcher->fetch()) {
-            $key = SceneTableMap::getPrimaryKeyHashFromRow($row, 0, $dataFetcher->getIndexType());
-            if (null !== ($obj = SceneTableMap::getInstanceFromPool($key))) {
+            $key = ItemTableMap::getPrimaryKeyHashFromRow($row, 0, $dataFetcher->getIndexType());
+            if (null !== ($obj = ItemTableMap::getInstanceFromPool($key))) {
                 // We no longer rehydrate the object, since this can cause data loss.
                 // See http://www.propelorm.org/ticket/509
                 // $obj->hydrate($row, 0, true); // rehydrate
                 $results[] = $obj;
             } else {
-                /** @var Scene $obj */
+                /** @var Item $obj */
                 $obj = new $cls();
                 $obj->hydrate($row);
                 $results[] = $obj;
-                SceneTableMap::addInstanceToPool($obj, $key);
+                ItemTableMap::addInstanceToPool($obj, $key);
             } // if key exists
         }
 
@@ -315,17 +296,13 @@ class SceneTableMap extends TableMap
     public static function addSelectColumns(Criteria $criteria, $alias = null)
     {
         if (null === $alias) {
-            $criteria->addSelectColumn(SceneTableMap::COL_ID);
-            $criteria->addSelectColumn(SceneTableMap::COL_ITEM_ID);
-            $criteria->addSelectColumn(SceneTableMap::COL_TRAP_ID);
-            $criteria->addSelectColumn(SceneTableMap::COL_DESCRIPTION);
-            $criteria->addSelectColumn(SceneTableMap::COL_PLACEMENT);
+            $criteria->addSelectColumn(ItemTableMap::COL_ID);
+            $criteria->addSelectColumn(ItemTableMap::COL_NAME);
+            $criteria->addSelectColumn(ItemTableMap::COL_DESCRIPTION);
         } else {
             $criteria->addSelectColumn($alias . '.id');
-            $criteria->addSelectColumn($alias . '.item_id');
-            $criteria->addSelectColumn($alias . '.trap_id');
+            $criteria->addSelectColumn($alias . '.name');
             $criteria->addSelectColumn($alias . '.description');
-            $criteria->addSelectColumn($alias . '.placement');
         }
     }
 
@@ -338,7 +315,7 @@ class SceneTableMap extends TableMap
      */
     public static function getTableMap()
     {
-        return Propel::getServiceContainer()->getDatabaseMap(SceneTableMap::DATABASE_NAME)->getTable(SceneTableMap::TABLE_NAME);
+        return Propel::getServiceContainer()->getDatabaseMap(ItemTableMap::DATABASE_NAME)->getTable(ItemTableMap::TABLE_NAME);
     }
 
     /**
@@ -346,16 +323,16 @@ class SceneTableMap extends TableMap
      */
     public static function buildTableMap()
     {
-        $dbMap = Propel::getServiceContainer()->getDatabaseMap(SceneTableMap::DATABASE_NAME);
-        if (!$dbMap->hasTable(SceneTableMap::TABLE_NAME)) {
-            $dbMap->addTableObject(new SceneTableMap());
+        $dbMap = Propel::getServiceContainer()->getDatabaseMap(ItemTableMap::DATABASE_NAME);
+        if (!$dbMap->hasTable(ItemTableMap::TABLE_NAME)) {
+            $dbMap->addTableObject(new ItemTableMap());
         }
     }
 
     /**
-     * Performs a DELETE on the database, given a Scene or Criteria object OR a primary key value.
+     * Performs a DELETE on the database, given a Item or Criteria object OR a primary key value.
      *
-     * @param mixed               $values Criteria or Scene object or primary key or array of primary keys
+     * @param mixed               $values Criteria or Item object or primary key or array of primary keys
      *              which is used to create the DELETE statement
      * @param  ConnectionInterface $con the connection to use
      * @return int             The number of affected rows (if supported by underlying database driver).  This includes CASCADE-related rows
@@ -366,27 +343,27 @@ class SceneTableMap extends TableMap
      public static function doDelete($values, ConnectionInterface $con = null)
      {
         if (null === $con) {
-            $con = Propel::getServiceContainer()->getWriteConnection(SceneTableMap::DATABASE_NAME);
+            $con = Propel::getServiceContainer()->getWriteConnection(ItemTableMap::DATABASE_NAME);
         }
 
         if ($values instanceof Criteria) {
             // rename for clarity
             $criteria = $values;
-        } elseif ($values instanceof \Scene) { // it's a model object
+        } elseif ($values instanceof \Item) { // it's a model object
             // create criteria based on pk values
             $criteria = $values->buildPkeyCriteria();
         } else { // it's a primary key, or an array of pks
-            $criteria = new Criteria(SceneTableMap::DATABASE_NAME);
-            $criteria->add(SceneTableMap::COL_ID, (array) $values, Criteria::IN);
+            $criteria = new Criteria(ItemTableMap::DATABASE_NAME);
+            $criteria->add(ItemTableMap::COL_ID, (array) $values, Criteria::IN);
         }
 
-        $query = SceneQuery::create()->mergeWith($criteria);
+        $query = ItemQuery::create()->mergeWith($criteria);
 
         if ($values instanceof Criteria) {
-            SceneTableMap::clearInstancePool();
+            ItemTableMap::clearInstancePool();
         } elseif (!is_object($values)) { // it's a primary key, or an array of pks
             foreach ((array) $values as $singleval) {
-                SceneTableMap::removeInstanceFromPool($singleval);
+                ItemTableMap::removeInstanceFromPool($singleval);
             }
         }
 
@@ -394,20 +371,20 @@ class SceneTableMap extends TableMap
     }
 
     /**
-     * Deletes all rows from the scene table.
+     * Deletes all rows from the item table.
      *
      * @param ConnectionInterface $con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).
      */
     public static function doDeleteAll(ConnectionInterface $con = null)
     {
-        return SceneQuery::create()->doDeleteAll($con);
+        return ItemQuery::create()->doDeleteAll($con);
     }
 
     /**
-     * Performs an INSERT on the database, given a Scene or Criteria object.
+     * Performs an INSERT on the database, given a Item or Criteria object.
      *
-     * @param mixed               $criteria Criteria or Scene object containing data that is used to create the INSERT statement.
+     * @param mixed               $criteria Criteria or Item object containing data that is used to create the INSERT statement.
      * @param ConnectionInterface $con the ConnectionInterface connection to use
      * @return mixed           The new primary key.
      * @throws PropelException Any exceptions caught during processing will be
@@ -416,22 +393,22 @@ class SceneTableMap extends TableMap
     public static function doInsert($criteria, ConnectionInterface $con = null)
     {
         if (null === $con) {
-            $con = Propel::getServiceContainer()->getWriteConnection(SceneTableMap::DATABASE_NAME);
+            $con = Propel::getServiceContainer()->getWriteConnection(ItemTableMap::DATABASE_NAME);
         }
 
         if ($criteria instanceof Criteria) {
             $criteria = clone $criteria; // rename for clarity
         } else {
-            $criteria = $criteria->buildCriteria(); // build Criteria from Scene object
+            $criteria = $criteria->buildCriteria(); // build Criteria from Item object
         }
 
-        if ($criteria->containsKey(SceneTableMap::COL_ID) && $criteria->keyContainsValue(SceneTableMap::COL_ID) ) {
-            throw new PropelException('Cannot insert a value for auto-increment primary key ('.SceneTableMap::COL_ID.')');
+        if ($criteria->containsKey(ItemTableMap::COL_ID) && $criteria->keyContainsValue(ItemTableMap::COL_ID) ) {
+            throw new PropelException('Cannot insert a value for auto-increment primary key ('.ItemTableMap::COL_ID.')');
         }
 
 
         // Set the correct dbName
-        $query = SceneQuery::create()->mergeWith($criteria);
+        $query = ItemQuery::create()->mergeWith($criteria);
 
         // use transaction because $criteria could contain info
         // for more than one table (I guess, conceivably)
@@ -440,7 +417,7 @@ class SceneTableMap extends TableMap
         });
     }
 
-} // SceneTableMap
+} // ItemTableMap
 // This is the static code needed to register the TableMap for this table with the main Propel class.
 //
-SceneTableMap::buildTableMap();
+ItemTableMap::buildTableMap();

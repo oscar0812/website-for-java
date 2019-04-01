@@ -10,6 +10,7 @@ use Map\SceneTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
+use Propel\Runtime\ActiveQuery\ModelJoin;
 use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\PropelException;
@@ -20,11 +21,15 @@ use Propel\Runtime\Exception\PropelException;
  *
  *
  * @method     ChildSceneQuery orderById($order = Criteria::ASC) Order by the id column
- * @method     ChildSceneQuery orderByText($order = Criteria::ASC) Order by the text column
+ * @method     ChildSceneQuery orderByItemId($order = Criteria::ASC) Order by the item_id column
+ * @method     ChildSceneQuery orderByTrapId($order = Criteria::ASC) Order by the trap_id column
+ * @method     ChildSceneQuery orderByDescription($order = Criteria::ASC) Order by the description column
  * @method     ChildSceneQuery orderByPlacement($order = Criteria::ASC) Order by the placement column
  *
  * @method     ChildSceneQuery groupById() Group by the id column
- * @method     ChildSceneQuery groupByText() Group by the text column
+ * @method     ChildSceneQuery groupByItemId() Group by the item_id column
+ * @method     ChildSceneQuery groupByTrapId() Group by the trap_id column
+ * @method     ChildSceneQuery groupByDescription() Group by the description column
  * @method     ChildSceneQuery groupByPlacement() Group by the placement column
  *
  * @method     ChildSceneQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
@@ -35,23 +40,51 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildSceneQuery rightJoinWith($relation) Adds a RIGHT JOIN clause and with to the query
  * @method     ChildSceneQuery innerJoinWith($relation) Adds a INNER JOIN clause and with to the query
  *
+ * @method     ChildSceneQuery leftJoinItem($relationAlias = null) Adds a LEFT JOIN clause to the query using the Item relation
+ * @method     ChildSceneQuery rightJoinItem($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Item relation
+ * @method     ChildSceneQuery innerJoinItem($relationAlias = null) Adds a INNER JOIN clause to the query using the Item relation
+ *
+ * @method     ChildSceneQuery joinWithItem($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the Item relation
+ *
+ * @method     ChildSceneQuery leftJoinWithItem() Adds a LEFT JOIN clause and with to the query using the Item relation
+ * @method     ChildSceneQuery rightJoinWithItem() Adds a RIGHT JOIN clause and with to the query using the Item relation
+ * @method     ChildSceneQuery innerJoinWithItem() Adds a INNER JOIN clause and with to the query using the Item relation
+ *
+ * @method     ChildSceneQuery leftJoinTrap($relationAlias = null) Adds a LEFT JOIN clause to the query using the Trap relation
+ * @method     ChildSceneQuery rightJoinTrap($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Trap relation
+ * @method     ChildSceneQuery innerJoinTrap($relationAlias = null) Adds a INNER JOIN clause to the query using the Trap relation
+ *
+ * @method     ChildSceneQuery joinWithTrap($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the Trap relation
+ *
+ * @method     ChildSceneQuery leftJoinWithTrap() Adds a LEFT JOIN clause and with to the query using the Trap relation
+ * @method     ChildSceneQuery rightJoinWithTrap() Adds a RIGHT JOIN clause and with to the query using the Trap relation
+ * @method     ChildSceneQuery innerJoinWithTrap() Adds a INNER JOIN clause and with to the query using the Trap relation
+ *
+ * @method     \ItemQuery|\TrapQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ *
  * @method     ChildScene findOne(ConnectionInterface $con = null) Return the first ChildScene matching the query
  * @method     ChildScene findOneOrCreate(ConnectionInterface $con = null) Return the first ChildScene matching the query, or a new ChildScene object populated from the query conditions when no match is found
  *
  * @method     ChildScene findOneById(int $id) Return the first ChildScene filtered by the id column
- * @method     ChildScene findOneByText(string $text) Return the first ChildScene filtered by the text column
+ * @method     ChildScene findOneByItemId(int $item_id) Return the first ChildScene filtered by the item_id column
+ * @method     ChildScene findOneByTrapId(int $trap_id) Return the first ChildScene filtered by the trap_id column
+ * @method     ChildScene findOneByDescription(string $description) Return the first ChildScene filtered by the description column
  * @method     ChildScene findOneByPlacement(int $placement) Return the first ChildScene filtered by the placement column *
 
  * @method     ChildScene requirePk($key, ConnectionInterface $con = null) Return the ChildScene by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildScene requireOne(ConnectionInterface $con = null) Return the first ChildScene matching the query and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildScene requireOneById(int $id) Return the first ChildScene filtered by the id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
- * @method     ChildScene requireOneByText(string $text) Return the first ChildScene filtered by the text column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildScene requireOneByItemId(int $item_id) Return the first ChildScene filtered by the item_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildScene requireOneByTrapId(int $trap_id) Return the first ChildScene filtered by the trap_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildScene requireOneByDescription(string $description) Return the first ChildScene filtered by the description column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildScene requireOneByPlacement(int $placement) Return the first ChildScene filtered by the placement column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildScene[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildScene objects based on current ModelCriteria
  * @method     ChildScene[]|ObjectCollection findById(int $id) Return ChildScene objects filtered by the id column
- * @method     ChildScene[]|ObjectCollection findByText(string $text) Return ChildScene objects filtered by the text column
+ * @method     ChildScene[]|ObjectCollection findByItemId(int $item_id) Return ChildScene objects filtered by the item_id column
+ * @method     ChildScene[]|ObjectCollection findByTrapId(int $trap_id) Return ChildScene objects filtered by the trap_id column
+ * @method     ChildScene[]|ObjectCollection findByDescription(string $description) Return ChildScene objects filtered by the description column
  * @method     ChildScene[]|ObjectCollection findByPlacement(int $placement) Return ChildScene objects filtered by the placement column
  * @method     ChildScene[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
@@ -151,7 +184,7 @@ abstract class SceneQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, text, placement FROM scene WHERE id = :p0';
+        $sql = 'SELECT id, item_id, trap_id, description, placement FROM scene WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -283,28 +316,114 @@ abstract class SceneQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query on the text column
+     * Filter the query on the item_id column
      *
      * Example usage:
      * <code>
-     * $query->filterByText('fooValue');   // WHERE text = 'fooValue'
-     * $query->filterByText('%fooValue%', Criteria::LIKE); // WHERE text LIKE '%fooValue%'
+     * $query->filterByItemId(1234); // WHERE item_id = 1234
+     * $query->filterByItemId(array(12, 34)); // WHERE item_id IN (12, 34)
+     * $query->filterByItemId(array('min' => 12)); // WHERE item_id > 12
      * </code>
      *
-     * @param     string $text The value to use as filter.
+     * @see       filterByItem()
+     *
+     * @param     mixed $itemId The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return $this|ChildSceneQuery The current query, for fluid interface
      */
-    public function filterByText($text = null, $comparison = null)
+    public function filterByItemId($itemId = null, $comparison = null)
     {
-        if (null === $comparison) {
-            if (is_array($text)) {
+        if (is_array($itemId)) {
+            $useMinMax = false;
+            if (isset($itemId['min'])) {
+                $this->addUsingAlias(SceneTableMap::COL_ITEM_ID, $itemId['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($itemId['max'])) {
+                $this->addUsingAlias(SceneTableMap::COL_ITEM_ID, $itemId['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
                 $comparison = Criteria::IN;
             }
         }
 
-        return $this->addUsingAlias(SceneTableMap::COL_TEXT, $text, $comparison);
+        return $this->addUsingAlias(SceneTableMap::COL_ITEM_ID, $itemId, $comparison);
+    }
+
+    /**
+     * Filter the query on the trap_id column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByTrapId(1234); // WHERE trap_id = 1234
+     * $query->filterByTrapId(array(12, 34)); // WHERE trap_id IN (12, 34)
+     * $query->filterByTrapId(array('min' => 12)); // WHERE trap_id > 12
+     * </code>
+     *
+     * @see       filterByTrap()
+     *
+     * @param     mixed $trapId The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildSceneQuery The current query, for fluid interface
+     */
+    public function filterByTrapId($trapId = null, $comparison = null)
+    {
+        if (is_array($trapId)) {
+            $useMinMax = false;
+            if (isset($trapId['min'])) {
+                $this->addUsingAlias(SceneTableMap::COL_TRAP_ID, $trapId['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($trapId['max'])) {
+                $this->addUsingAlias(SceneTableMap::COL_TRAP_ID, $trapId['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(SceneTableMap::COL_TRAP_ID, $trapId, $comparison);
+    }
+
+    /**
+     * Filter the query on the description column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByDescription('fooValue');   // WHERE description = 'fooValue'
+     * $query->filterByDescription('%fooValue%', Criteria::LIKE); // WHERE description LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $description The value to use as filter.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildSceneQuery The current query, for fluid interface
+     */
+    public function filterByDescription($description = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($description)) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(SceneTableMap::COL_DESCRIPTION, $description, $comparison);
     }
 
     /**
@@ -346,6 +465,160 @@ abstract class SceneQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(SceneTableMap::COL_PLACEMENT, $placement, $comparison);
+    }
+
+    /**
+     * Filter the query by a related \Item object
+     *
+     * @param \Item|ObjectCollection $item The related object(s) to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @throws \Propel\Runtime\Exception\PropelException
+     *
+     * @return ChildSceneQuery The current query, for fluid interface
+     */
+    public function filterByItem($item, $comparison = null)
+    {
+        if ($item instanceof \Item) {
+            return $this
+                ->addUsingAlias(SceneTableMap::COL_ITEM_ID, $item->getId(), $comparison);
+        } elseif ($item instanceof ObjectCollection) {
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+
+            return $this
+                ->addUsingAlias(SceneTableMap::COL_ITEM_ID, $item->toKeyValue('PrimaryKey', 'Id'), $comparison);
+        } else {
+            throw new PropelException('filterByItem() only accepts arguments of type \Item or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the Item relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildSceneQuery The current query, for fluid interface
+     */
+    public function joinItem($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('Item');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'Item');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the Item relation Item object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \ItemQuery A secondary query class using the current class as primary query
+     */
+    public function useItemQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        return $this
+            ->joinItem($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'Item', '\ItemQuery');
+    }
+
+    /**
+     * Filter the query by a related \Trap object
+     *
+     * @param \Trap|ObjectCollection $trap The related object(s) to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @throws \Propel\Runtime\Exception\PropelException
+     *
+     * @return ChildSceneQuery The current query, for fluid interface
+     */
+    public function filterByTrap($trap, $comparison = null)
+    {
+        if ($trap instanceof \Trap) {
+            return $this
+                ->addUsingAlias(SceneTableMap::COL_TRAP_ID, $trap->getId(), $comparison);
+        } elseif ($trap instanceof ObjectCollection) {
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+
+            return $this
+                ->addUsingAlias(SceneTableMap::COL_TRAP_ID, $trap->toKeyValue('PrimaryKey', 'Id'), $comparison);
+        } else {
+            throw new PropelException('filterByTrap() only accepts arguments of type \Trap or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the Trap relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildSceneQuery The current query, for fluid interface
+     */
+    public function joinTrap($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('Trap');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'Trap');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the Trap relation Trap object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \TrapQuery A secondary query class using the current class as primary query
+     */
+    public function useTrapQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        return $this
+            ->joinTrap($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'Trap', '\TrapQuery');
     }
 
     /**

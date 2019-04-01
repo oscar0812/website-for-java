@@ -1,3 +1,16 @@
+function ajaxForm(form, callback) {
+  var data = new FormData(form);
+  $.ajax({
+    url: form.action,
+    method: form.method,
+    processData: false,
+    contentType: false,
+    data: data,
+    processData: false,
+    success: callback
+  });
+}
+
 $(function() {
   $("#sortable").sortable({
     handle: '.fa-arrows',
@@ -19,7 +32,6 @@ $(function() {
     }
   });
 
-
   /*
 
   Snackbar.show({
@@ -29,32 +41,46 @@ $(function() {
 
   */
 
-  //----- OPEN
-  $('[pd-popup-open]').on('click', function(e) {
-    var targeted_popup_class = $(this).attr('pd-popup-open');
-    popup = $('[pd-popup="' + targeted_popup_class + '"]');
-    popup.removeClass('invisible');
-    popup.fadeIn(100);
+  $('[data-target="#newSceneModal"]').on('click', function() {
+    // new scene modal button clicked (load the traps and items)
+    btn = $(this);
+    items = $('[name="item_choice"]');
+    traps = $('[name="trap_choice"]');
 
+    $.ajax({
+      url: btn.attr('data-url'),
+      method: 'post',
+      success: function(data) {
+        items.children().remove();
+        traps.children().remove();
 
-    e.preventDefault();
-  });
+        $.each(data['items'], function(i, v) {
+          o = $('<option>').text(v.Name).attr('value', v.Id);
+          items.append(o);
+        });
 
-  //----- CLOSE
-  $('[pd-popup-close]').on('click', function(e) {
-    var targeted_popup_class = $(this).attr('pd-popup-close');
-    popup = $('[pd-popup="' + targeted_popup_class + '"]');
-    popup.fadeOut(100, function() {
-      popup.addClass('invisible');
+        $.each(data['traps'], function(i, v) {
+          o = $('<option>').text(v.Name).attr('value', v.Id);
+          traps.append(o);
+        });
+      }
     });
-
-    e.preventDefault();
   });
 
+  $('div.modal form').on('submit', function(e) {
+    $(e.target).attr('action', $('body').data('form-url')).attr('method', 'POST');
+
+    ajaxForm(e.target, function(data) {
+      console.log(data);
+    });
+    return false;
+  });
+
+  // search in navbar
   prevTxt = "";
   $('nav .form-inline input').on('input keyup', function() {
     txt = $(this).val();
-    if(txt == prevTxt){
+    if (txt == prevTxt) {
       return false;
     }
     prevTxt = txt;
