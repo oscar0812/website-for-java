@@ -60,13 +60,25 @@
     </div>
 
     <ul class="list-group mt-20 row" id="sortable" data-url="<?=$router->pathFor('item-dropped')?>">
+      <li class="list-group-item row invisible">
+        <div class="float-sm-left col-sm-9">
+          <p><i class="fa fa-arrows"></i> <b>[ID:
+              <span class="scene-id">1</span>]</b>
+              <span class="scene-description"></span>
+          </p>
+        </div>
+        <div class="btn-group float-sm-right col-sm-3">
+          <button class="align-middle btn btn-warning">Edit</button>
+          <button class="align-middle btn btn-danger">Delete</button>
+        </div>
+      </li>
       <?php foreach($scenes as $scene) { ?>
       <li class="list-group-item row" data-id="<?=$scene->getId()?>">
 
         <div class="float-sm-left col-sm-9">
           <p><i class="fa fa-arrows"></i> <b>[ID:
-              <?=$scene->getId()?>]</b>
-            <?=$scene->getText()?>
+              <span class="scene-id"><?=$scene->getId()?></span>]</b>
+              <span class="scene-description"><?=$scene->getDescription()?></span>
           </p>
         </div>
         <div class="btn-group float-sm-right col-sm-3">
@@ -180,11 +192,17 @@
               </div>
             </div>
             <div class="form-group">
+              <label>Parent Scene</label>
+              <select class="form-control" name="parent_choice">
+                <option value="0" selected>None</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label>Text</label>
               <textarea class="form-control" rows="3" placeholder="Describe the scene..." name="description"></textarea>
             </div>
             <input type="hidden" name="type" value="scene">
-            <button type="submit" class="btn btn-primary">Sign in</button>
+            <button type="submit" class="btn btn-primary">Create</button>
           </form>
         </div>
 

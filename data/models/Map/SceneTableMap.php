@@ -59,7 +59,7 @@ class SceneTableMap extends TableMap
     /**
      * The total number of columns
      */
-    const NUM_COLUMNS = 5;
+    const NUM_COLUMNS = 6;
 
     /**
      * The number of lazy-loaded columns
@@ -69,7 +69,7 @@ class SceneTableMap extends TableMap
     /**
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
-    const NUM_HYDRATE_COLUMNS = 5;
+    const NUM_HYDRATE_COLUMNS = 6;
 
     /**
      * the column name for the id field
@@ -85,6 +85,11 @@ class SceneTableMap extends TableMap
      * the column name for the trap_id field
      */
     const COL_TRAP_ID = 'scene.trap_id';
+
+    /**
+     * the column name for the parent_scene_id field
+     */
+    const COL_PARENT_SCENE_ID = 'scene.parent_scene_id';
 
     /**
      * the column name for the description field
@@ -108,11 +113,11 @@ class SceneTableMap extends TableMap
      * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        self::TYPE_PHPNAME       => array('Id', 'ItemId', 'TrapId', 'Description', 'Placement', ),
-        self::TYPE_CAMELNAME     => array('id', 'itemId', 'trapId', 'description', 'placement', ),
-        self::TYPE_COLNAME       => array(SceneTableMap::COL_ID, SceneTableMap::COL_ITEM_ID, SceneTableMap::COL_TRAP_ID, SceneTableMap::COL_DESCRIPTION, SceneTableMap::COL_PLACEMENT, ),
-        self::TYPE_FIELDNAME     => array('id', 'item_id', 'trap_id', 'description', 'placement', ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, )
+        self::TYPE_PHPNAME       => array('Id', 'ItemId', 'TrapId', 'ParentSceneId', 'Description', 'Placement', ),
+        self::TYPE_CAMELNAME     => array('id', 'itemId', 'trapId', 'parentSceneId', 'description', 'placement', ),
+        self::TYPE_COLNAME       => array(SceneTableMap::COL_ID, SceneTableMap::COL_ITEM_ID, SceneTableMap::COL_TRAP_ID, SceneTableMap::COL_PARENT_SCENE_ID, SceneTableMap::COL_DESCRIPTION, SceneTableMap::COL_PLACEMENT, ),
+        self::TYPE_FIELDNAME     => array('id', 'item_id', 'trap_id', 'parent_scene_id', 'description', 'placement', ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, )
     );
 
     /**
@@ -122,11 +127,11 @@ class SceneTableMap extends TableMap
      * e.g. self::$fieldKeys[self::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        self::TYPE_PHPNAME       => array('Id' => 0, 'ItemId' => 1, 'TrapId' => 2, 'Description' => 3, 'Placement' => 4, ),
-        self::TYPE_CAMELNAME     => array('id' => 0, 'itemId' => 1, 'trapId' => 2, 'description' => 3, 'placement' => 4, ),
-        self::TYPE_COLNAME       => array(SceneTableMap::COL_ID => 0, SceneTableMap::COL_ITEM_ID => 1, SceneTableMap::COL_TRAP_ID => 2, SceneTableMap::COL_DESCRIPTION => 3, SceneTableMap::COL_PLACEMENT => 4, ),
-        self::TYPE_FIELDNAME     => array('id' => 0, 'item_id' => 1, 'trap_id' => 2, 'description' => 3, 'placement' => 4, ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, )
+        self::TYPE_PHPNAME       => array('Id' => 0, 'ItemId' => 1, 'TrapId' => 2, 'ParentSceneId' => 3, 'Description' => 4, 'Placement' => 5, ),
+        self::TYPE_CAMELNAME     => array('id' => 0, 'itemId' => 1, 'trapId' => 2, 'parentSceneId' => 3, 'description' => 4, 'placement' => 5, ),
+        self::TYPE_COLNAME       => array(SceneTableMap::COL_ID => 0, SceneTableMap::COL_ITEM_ID => 1, SceneTableMap::COL_TRAP_ID => 2, SceneTableMap::COL_PARENT_SCENE_ID => 3, SceneTableMap::COL_DESCRIPTION => 4, SceneTableMap::COL_PLACEMENT => 5, ),
+        self::TYPE_FIELDNAME     => array('id' => 0, 'item_id' => 1, 'trap_id' => 2, 'parent_scene_id' => 3, 'description' => 4, 'placement' => 5, ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, )
     );
 
     /**
@@ -149,6 +154,7 @@ class SceneTableMap extends TableMap
         $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
         $this->addForeignKey('item_id', 'ItemId', 'INTEGER', 'item', 'id', true, null, null);
         $this->addForeignKey('trap_id', 'TrapId', 'INTEGER', 'trap', 'id', true, null, null);
+        $this->addForeignKey('parent_scene_id', 'ParentSceneId', 'INTEGER', 'scene', 'id', true, null, null);
         $this->addColumn('description', 'Description', 'VARCHAR', true, 16384, null);
         $this->addColumn('placement', 'Placement', 'INTEGER', true, null, null);
     } // initialize()
@@ -172,6 +178,20 @@ class SceneTableMap extends TableMap
     1 => ':id',
   ),
 ), null, null, null, false);
+        $this->addRelation('SceneRelatedByParentSceneId', '\\Scene', RelationMap::MANY_TO_ONE, array (
+  0 =>
+  array (
+    0 => ':parent_scene_id',
+    1 => ':id',
+  ),
+), null, null, null, false);
+        $this->addRelation('SceneRelatedById', '\\Scene', RelationMap::ONE_TO_MANY, array (
+  0 =>
+  array (
+    0 => ':parent_scene_id',
+    1 => ':id',
+  ),
+), null, null, 'ScenesRelatedById', false);
     } // buildRelations()
 
     /**
@@ -318,12 +338,14 @@ class SceneTableMap extends TableMap
             $criteria->addSelectColumn(SceneTableMap::COL_ID);
             $criteria->addSelectColumn(SceneTableMap::COL_ITEM_ID);
             $criteria->addSelectColumn(SceneTableMap::COL_TRAP_ID);
+            $criteria->addSelectColumn(SceneTableMap::COL_PARENT_SCENE_ID);
             $criteria->addSelectColumn(SceneTableMap::COL_DESCRIPTION);
             $criteria->addSelectColumn(SceneTableMap::COL_PLACEMENT);
         } else {
             $criteria->addSelectColumn($alias . '.id');
             $criteria->addSelectColumn($alias . '.item_id');
             $criteria->addSelectColumn($alias . '.trap_id');
+            $criteria->addSelectColumn($alias . '.parent_scene_id');
             $criteria->addSelectColumn($alias . '.description');
             $criteria->addSelectColumn($alias . '.placement');
         }

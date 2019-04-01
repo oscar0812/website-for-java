@@ -59,13 +59,15 @@ $app->post('/item-dropped', function ($request, $response, $args) {
     return $response->withJson(['success'=>true, 'from'=>$oldIndex, 'to'=>$newIndex]);
 })->setName('item-dropped');
 
-// get all items and traps
+// get all items and traps and scenes
 $app->post('/get-all', function ($request, $response, $args) {
     $params = $request->getParsedBody();
     $traps = \TrapQuery::create()->find();
     $items = \ItemQuery::create()->find();
+    $scenes = \SceneQuery::create()->find();
 
-    return $response->withJson(['traps'=>$traps->toArray(), 'items'=>$items->toArray()]);
+    return $response->withJson(['traps'=>$traps->toArray(),
+    'items'=>$items->toArray(), 'scenes'=>$scenes->toArray()]);
 })->setName('get-all');
 
 // add new row to database
@@ -79,7 +81,6 @@ $app->post('/add', function ($request, $response, $args) {
         $trap->setDamage($params['damage']);
 
         $trap->save();
-
     } elseif ($params['type'] == 'item') {
         $item = new \Item();
         $item->setName($params['name']);
@@ -93,9 +94,10 @@ $app->post('/add', function ($request, $response, $args) {
         $scene->setDescription($params['description']);
 
         $scene->save();
+        $params['id'] = $scene->getId();
     }
 
-    return $response->withJson($params);
+    return $response->withJson(['success'=>true, 'params'=>$params]);
 })->setName('add');
 
 $app->run();
