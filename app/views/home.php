@@ -36,7 +36,18 @@
       <div class="card">
         <div class="card-body row">
           <div class="float-sm-left col-sm-9">
-            hi
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newSceneModal">
+              <i class="fa fa-plus"></i>
+              Scene
+            </button>
+            <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#newSceneModal">
+              <i class="fa fa-plus"></i>
+              Item
+            </button>
+            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#newSceneModal">
+              <i class="fa fa-plus"></i>
+              Trap
+            </button>
           </div>
           <div class="float-sm-right col-sm-3">
             <div class="custom-control custom-switch">
@@ -53,7 +64,8 @@
       <li class="list-group-item row" data-id="<?=$scene->getId()?>">
 
         <div class="float-sm-left col-sm-9">
-          <p><i class="fa fa-arrows"></i>
+          <p><i class="fa fa-arrows"></i> <b>[ID:
+              <?=$scene->getId()?>]</b>
             <?=$scene->getText()?>
           </p>
         </div>
@@ -66,27 +78,49 @@
     </ul>
   </div>
 
-  <div class="invisible popup" pd-popup="addNewPerfume">
-    <div class="popup-inner">
-      <div class="row">
-        <h2>Add New Perfume
-      </div>
-      <form id="add-new-perfume" class="row inner-scroll" method="POST" action="">
-        <div class="col-md-12 col-sm-12">
-          <div class="row">
-            <p class="form-row col-sm-6">
-              <label for="name">Name<abbr title="required" class="required">*</abbr></label>
-              <input type="text" name="Perfume[name]" id="name" class="form-controller">
-            </p>
-            <p class="form-row col-sm-6">
-              <label for="price">Price<abbr title="required" class="required">*</abbr></label>
-              <input type="text" name="Perfume[price]" id="price" class="form-controller">
-            </p>
-          </div>
+  <div class="modal" id="newSceneModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Create New Scene</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
-      </form>
-      <button class="btn btn-lg btn-success" type="submit">Submit</button>
-      <a class="popup-close" pd-popup-close="addNewPerfume" href="#"> </a>
+
+        <!-- Modal body -->
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="inputText">Text</label>
+              <textarea class="form-control" id="inputText" rows="3" placeholder="Describe the scene..."></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="inputItem">Item</label>
+                <select id="inputItem" class="form-control">
+                  <option selected>Choose...</option>
+                  <option>...</option>
+                </select>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="inputTrap">Trap</label>
+                <select id="inputTrap" class="form-control">
+                  <option selected>Choose...</option>
+                  <option>...</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign in</button>
+          </form>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        </div>
+
+      </div>
     </div>
   </div>
 
