@@ -21,9 +21,6 @@
     <foreign-key foreignTable="trap" name="scene_ibfk_2">
       <reference local="trap_id" foreign="id"/>
     </foreign-key>
-    <foreign-key foreignTable="scene" name="scene_ibfk_3">
-      <reference local="parent_scene_id" foreign="id"/>
-    </foreign-key>
     <index name="item_id">
       <index-column name="item_id"/>
     </index>

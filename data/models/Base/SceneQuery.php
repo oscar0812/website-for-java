@@ -62,27 +62,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildSceneQuery rightJoinWithTrap() Adds a RIGHT JOIN clause and with to the query using the Trap relation
  * @method     ChildSceneQuery innerJoinWithTrap() Adds a INNER JOIN clause and with to the query using the Trap relation
  *
- * @method     ChildSceneQuery leftJoinSceneRelatedByParentSceneId($relationAlias = null) Adds a LEFT JOIN clause to the query using the SceneRelatedByParentSceneId relation
- * @method     ChildSceneQuery rightJoinSceneRelatedByParentSceneId($relationAlias = null) Adds a RIGHT JOIN clause to the query using the SceneRelatedByParentSceneId relation
- * @method     ChildSceneQuery innerJoinSceneRelatedByParentSceneId($relationAlias = null) Adds a INNER JOIN clause to the query using the SceneRelatedByParentSceneId relation
- *
- * @method     ChildSceneQuery joinWithSceneRelatedByParentSceneId($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the SceneRelatedByParentSceneId relation
- *
- * @method     ChildSceneQuery leftJoinWithSceneRelatedByParentSceneId() Adds a LEFT JOIN clause and with to the query using the SceneRelatedByParentSceneId relation
- * @method     ChildSceneQuery rightJoinWithSceneRelatedByParentSceneId() Adds a RIGHT JOIN clause and with to the query using the SceneRelatedByParentSceneId relation
- * @method     ChildSceneQuery innerJoinWithSceneRelatedByParentSceneId() Adds a INNER JOIN clause and with to the query using the SceneRelatedByParentSceneId relation
- *
- * @method     ChildSceneQuery leftJoinSceneRelatedById($relationAlias = null) Adds a LEFT JOIN clause to the query using the SceneRelatedById relation
- * @method     ChildSceneQuery rightJoinSceneRelatedById($relationAlias = null) Adds a RIGHT JOIN clause to the query using the SceneRelatedById relation
- * @method     ChildSceneQuery innerJoinSceneRelatedById($relationAlias = null) Adds a INNER JOIN clause to the query using the SceneRelatedById relation
- *
- * @method     ChildSceneQuery joinWithSceneRelatedById($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the SceneRelatedById relation
- *
- * @method     ChildSceneQuery leftJoinWithSceneRelatedById() Adds a LEFT JOIN clause and with to the query using the SceneRelatedById relation
- * @method     ChildSceneQuery rightJoinWithSceneRelatedById() Adds a RIGHT JOIN clause and with to the query using the SceneRelatedById relation
- * @method     ChildSceneQuery innerJoinWithSceneRelatedById() Adds a INNER JOIN clause and with to the query using the SceneRelatedById relation
- *
- * @method     \ItemQuery|\TrapQuery|\SceneQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     \ItemQuery|\TrapQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
  * @method     ChildScene findOne(ConnectionInterface $con = null) Return the first ChildScene matching the query
  * @method     ChildScene findOneOrCreate(ConnectionInterface $con = null) Return the first ChildScene matching the query, or a new ChildScene object populated from the query conditions when no match is found
@@ -436,8 +416,6 @@ abstract class SceneQuery extends ModelCriteria
      * $query->filterByParentSceneId(array('min' => 12)); // WHERE parent_scene_id > 12
      * </code>
      *
-     * @see       filterBySceneRelatedByParentSceneId()
-     *
      * @param     mixed $parentSceneId The value to use as filter.
      *              Use scalar values for equality.
      *              Use array values for in_array() equivalent.
@@ -687,156 +665,6 @@ abstract class SceneQuery extends ModelCriteria
         return $this
             ->joinTrap($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'Trap', '\TrapQuery');
-    }
-
-    /**
-     * Filter the query by a related \Scene object
-     *
-     * @param \Scene|ObjectCollection $scene The related object(s) to use as filter
-     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @throws \Propel\Runtime\Exception\PropelException
-     *
-     * @return ChildSceneQuery The current query, for fluid interface
-     */
-    public function filterBySceneRelatedByParentSceneId($scene, $comparison = null)
-    {
-        if ($scene instanceof \Scene) {
-            return $this
-                ->addUsingAlias(SceneTableMap::COL_PARENT_SCENE_ID, $scene->getId(), $comparison);
-        } elseif ($scene instanceof ObjectCollection) {
-            if (null === $comparison) {
-                $comparison = Criteria::IN;
-            }
-
-            return $this
-                ->addUsingAlias(SceneTableMap::COL_PARENT_SCENE_ID, $scene->toKeyValue('PrimaryKey', 'Id'), $comparison);
-        } else {
-            throw new PropelException('filterBySceneRelatedByParentSceneId() only accepts arguments of type \Scene or Collection');
-        }
-    }
-
-    /**
-     * Adds a JOIN clause to the query using the SceneRelatedByParentSceneId relation
-     *
-     * @param     string $relationAlias optional alias for the relation
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return $this|ChildSceneQuery The current query, for fluid interface
-     */
-    public function joinSceneRelatedByParentSceneId($relationAlias = null, $joinType = Criteria::INNER_JOIN)
-    {
-        $tableMap = $this->getTableMap();
-        $relationMap = $tableMap->getRelation('SceneRelatedByParentSceneId');
-
-        // create a ModelJoin object for this join
-        $join = new ModelJoin();
-        $join->setJoinType($joinType);
-        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-        if ($previousJoin = $this->getPreviousJoin()) {
-            $join->setPreviousJoin($previousJoin);
-        }
-
-        // add the ModelJoin to the current object
-        if ($relationAlias) {
-            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
-            $this->addJoinObject($join, $relationAlias);
-        } else {
-            $this->addJoinObject($join, 'SceneRelatedByParentSceneId');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Use the SceneRelatedByParentSceneId relation Scene object
-     *
-     * @see useQuery()
-     *
-     * @param     string $relationAlias optional alias for the relation,
-     *                                   to be used as main alias in the secondary query
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return \SceneQuery A secondary query class using the current class as primary query
-     */
-    public function useSceneRelatedByParentSceneIdQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
-    {
-        return $this
-            ->joinSceneRelatedByParentSceneId($relationAlias, $joinType)
-            ->useQuery($relationAlias ? $relationAlias : 'SceneRelatedByParentSceneId', '\SceneQuery');
-    }
-
-    /**
-     * Filter the query by a related \Scene object
-     *
-     * @param \Scene|ObjectCollection $scene the related object to use as filter
-     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return ChildSceneQuery The current query, for fluid interface
-     */
-    public function filterBySceneRelatedById($scene, $comparison = null)
-    {
-        if ($scene instanceof \Scene) {
-            return $this
-                ->addUsingAlias(SceneTableMap::COL_ID, $scene->getParentSceneId(), $comparison);
-        } elseif ($scene instanceof ObjectCollection) {
-            return $this
-                ->useSceneRelatedByIdQuery()
-                ->filterByPrimaryKeys($scene->getPrimaryKeys())
-                ->endUse();
-        } else {
-            throw new PropelException('filterBySceneRelatedById() only accepts arguments of type \Scene or Collection');
-        }
-    }
-
-    /**
-     * Adds a JOIN clause to the query using the SceneRelatedById relation
-     *
-     * @param     string $relationAlias optional alias for the relation
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return $this|ChildSceneQuery The current query, for fluid interface
-     */
-    public function joinSceneRelatedById($relationAlias = null, $joinType = Criteria::INNER_JOIN)
-    {
-        $tableMap = $this->getTableMap();
-        $relationMap = $tableMap->getRelation('SceneRelatedById');
-
-        // create a ModelJoin object for this join
-        $join = new ModelJoin();
-        $join->setJoinType($joinType);
-        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-        if ($previousJoin = $this->getPreviousJoin()) {
-            $join->setPreviousJoin($previousJoin);
-        }
-
-        // add the ModelJoin to the current object
-        if ($relationAlias) {
-            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
-            $this->addJoinObject($join, $relationAlias);
-        } else {
-            $this->addJoinObject($join, 'SceneRelatedById');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Use the SceneRelatedById relation Scene object
-     *
-     * @see useQuery()
-     *
-     * @param     string $relationAlias optional alias for the relation,
-     *                                   to be used as main alias in the secondary query
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return \SceneQuery A secondary query class using the current class as primary query
-     */
-    public function useSceneRelatedByIdQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
-    {
-        return $this
-            ->joinSceneRelatedById($relationAlias, $joinType)
-            ->useQuery($relationAlias ? $relationAlias : 'SceneRelatedById', '\SceneQuery');
     }
 
     /**

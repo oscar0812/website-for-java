@@ -21,54 +21,23 @@ $app->get('/', function ($request, $response, $args) {
     return $this->view->render($response, 'home.php', ['router'=>$this->router, 'scenes'=>$scenes]);
 })->setName('home');
 
-$app->get('/json', function ($request, $response, $args) {
-    $scenes = \SceneQuery::create()->orderByPlacement()->find();
-    return $response->withJson($scenes->toArray());
-})->setName('json');
-
 $app->post('/item-dropped', function ($request, $response, $args) {
     $params = $request->getParsedBody();
-    $oldIndex = -1;
-    $newIndex = intval($params['new_index']);
-    $scenes = \SceneQuery::create()->orderByPlacement()->find();
-
-    $index = 1;
-    foreach ($scenes as $scene) {
-        if ($newIndex == $index && $scene->getId() != $params['id']) {
-            // this is were the item is supposed to go, so just place the item
-            // we are looking at in the next index
-            $scene->setPlacement(++$index);
-        }
-        if ($scene->getId() == $params['id']) {
-            // found the item we were looking for
-            $oldIndex = $scene->getPlacement();
-            $scene->setPlacement($newIndex);
-            if ($newIndex <= $index) {
-                // if we moved item back we have to increment the index to
-                // push other elements one back
-                $index++;
-            }
-        } else {
-            // base case, just set index as incremental
-            $scene->setPlacement($index++);
-        }
-    }
-
-    $scenes->save();
+    \Scene::orderPlacement($params['id'], intval($params['new_index']));
 
     return $response->withJson(['success'=>true, 'from'=>$oldIndex, 'to'=>$newIndex]);
 })->setName('item-dropped');
 
 // get all items and traps and scenes
-$app->post('/get-all', function ($request, $response, $args) {
+$app->get('/json', function ($request, $response, $args) {
     $params = $request->getParsedBody();
     $traps = \TrapQuery::create()->find();
     $items = \ItemQuery::create()->find();
     $scenes = \SceneQuery::create()->find();
 
     return $response->withJson(['traps'=>$traps->toArray(),
-    'items'=>$items->toArray(), 'scenes'=>$scenes->toArray()]);
-})->setName('get-all');
+  'items'=>$items->toArray(), 'scenes'=>$scenes->toArray()]);
+})->setName('json');
 
 // add new row to database
 $app->post('/add', function ($request, $response, $args) {
@@ -92,8 +61,11 @@ $app->post('/add', function ($request, $response, $args) {
         $scene->setItemId($params['item_choice']);
         $scene->setTrapId($params['trap_choice']);
         $scene->setDescription($params['description']);
+        $scene->setParentSceneId($params['parent_choice']);
+
 
         $scene->save();
+        \Scene::orderPlacement($scene->getId(), 1);
         $params['id'] = $scene->getId();
     }
 

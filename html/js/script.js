@@ -41,6 +41,25 @@ $(function() {
 
   */
 
+  // when li is hovered
+  toggle = $('#switch');
+  $('#sortable li').hover(function(e) {
+    isChecked = toggle.prop("checked");
+    if (isChecked) {
+      // clear out previous colors
+      $('#sortable li').css('background-color', 'white');
+      // show all the parents in green, and children in red
+      id = $(this).attr('data-id');
+      // set the children to red
+      children = $('#sortable li[data-parent-id="'+id+'"]');
+      children.css('background-color', '#f48fb1');
+
+      pId = $(this).attr('data-parent-id');
+      parents = $('#sortable li[data-id="'+pId+'"]');
+      parents.css('background-color', '#69f0ae');
+    }
+  });
+
   $('[data-target="#newSceneModal"]').on('click', function() {
     // new scene modal button clicked (load the traps and items)
     btn = $(this);
@@ -50,7 +69,7 @@ $(function() {
 
     $.ajax({
       url: btn.attr('data-url'),
-      method: 'post',
+      method: 'get',
       success: function(data) {
         console.log(data);
         items.children().remove();
@@ -88,6 +107,7 @@ $(function() {
         invisible = sortable.find('.invisible');
         template = invisible.clone().removeClass('invisible');
         template.attr('data-id', data.params.id);
+        template.attr('data-parent-id', data.params.parent_choice);
         template.find('.scene-id').text(data.params.id);
         template.find('.scene-description').text(data.params.description);
 

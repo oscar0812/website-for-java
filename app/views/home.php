@@ -44,7 +44,7 @@
               <i class="fa fa-plus"></i>
               Trap
             </button>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newSceneModal" data-url="<?=$router->pathFor('get-all')?>">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newSceneModal" data-url="<?=$router->pathFor('json')?>">
               <i class="fa fa-plus"></i>
               Scene
             </button>
@@ -73,7 +73,7 @@
         </div>
       </li>
       <?php foreach($scenes as $scene) { ?>
-      <li class="list-group-item row" data-id="<?=$scene->getId()?>">
+      <li class="list-group-item row" data-id="<?=$scene->getId()?>" data-parent-id="<?=$scene->getParentSceneId()?>">
 
         <div class="float-sm-left col-sm-9">
           <p><i class="fa fa-arrows"></i> <b>[ID:

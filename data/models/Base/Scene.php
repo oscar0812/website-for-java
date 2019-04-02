@@ -4,7 +4,6 @@ namespace Base;
 
 use \Item as ChildItem;
 use \ItemQuery as ChildItemQuery;
-use \Scene as ChildScene;
 use \SceneQuery as ChildSceneQuery;
 use \Trap as ChildTrap;
 use \TrapQuery as ChildTrapQuery;
@@ -16,7 +15,6 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Collection\Collection;
-use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\BadMethodCallException;
 use Propel\Runtime\Exception\LogicException;
@@ -118,29 +116,12 @@ abstract class Scene implements ActiveRecordInterface
     protected $aTrap;
 
     /**
-     * @var        ChildScene
-     */
-    protected $aSceneRelatedByParentSceneId;
-
-    /**
-     * @var        ObjectCollection|ChildScene[] Collection to store aggregation of ChildScene objects.
-     */
-    protected $collScenesRelatedById;
-    protected $collScenesRelatedByIdPartial;
-
-    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      *
      * @var boolean
      */
     protected $alreadyInSave = false;
-
-    /**
-     * An array of objects scheduled for deletion.
-     * @var ObjectCollection|ChildScene[]
-     */
-    protected $scenesRelatedByIdScheduledForDeletion = null;
 
     /**
      * Initializes internal state of Base\Scene object.
@@ -512,10 +493,6 @@ abstract class Scene implements ActiveRecordInterface
             $this->modifiedColumns[SceneTableMap::COL_PARENT_SCENE_ID] = true;
         }
 
-        if ($this->aSceneRelatedByParentSceneId !== null && $this->aSceneRelatedByParentSceneId->getId() !== $v) {
-            $this->aSceneRelatedByParentSceneId = null;
-        }
-
         return $this;
     } // setParentSceneId()
 
@@ -648,9 +625,6 @@ abstract class Scene implements ActiveRecordInterface
         if ($this->aTrap !== null && $this->trap_id !== $this->aTrap->getId()) {
             $this->aTrap = null;
         }
-        if ($this->aSceneRelatedByParentSceneId !== null && $this->parent_scene_id !== $this->aSceneRelatedByParentSceneId->getId()) {
-            $this->aSceneRelatedByParentSceneId = null;
-        }
     } // ensureConsistency
 
     /**
@@ -692,9 +666,6 @@ abstract class Scene implements ActiveRecordInterface
 
             $this->aItem = null;
             $this->aTrap = null;
-            $this->aSceneRelatedByParentSceneId = null;
-            $this->collScenesRelatedById = null;
-
         } // if (deep)
     }
 
@@ -817,13 +788,6 @@ abstract class Scene implements ActiveRecordInterface
                 $this->setTrap($this->aTrap);
             }
 
-            if ($this->aSceneRelatedByParentSceneId !== null) {
-                if ($this->aSceneRelatedByParentSceneId->isModified() || $this->aSceneRelatedByParentSceneId->isNew()) {
-                    $affectedRows += $this->aSceneRelatedByParentSceneId->save($con);
-                }
-                $this->setSceneRelatedByParentSceneId($this->aSceneRelatedByParentSceneId);
-            }
-
             if ($this->isNew() || $this->isModified()) {
                 // persist changes
                 if ($this->isNew()) {
@@ -833,23 +797,6 @@ abstract class Scene implements ActiveRecordInterface
                     $affectedRows += $this->doUpdate($con);
                 }
                 $this->resetModified();
-            }
-
-            if ($this->scenesRelatedByIdScheduledForDeletion !== null) {
-                if (!$this->scenesRelatedByIdScheduledForDeletion->isEmpty()) {
-                    \SceneQuery::create()
-                        ->filterByPrimaryKeys($this->scenesRelatedByIdScheduledForDeletion->getPrimaryKeys(false))
-                        ->delete($con);
-                    $this->scenesRelatedByIdScheduledForDeletion = null;
-                }
-            }
-
-            if ($this->collScenesRelatedById !== null) {
-                foreach ($this->collScenesRelatedById as $referrerFK) {
-                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
-                        $affectedRows += $referrerFK->save($con);
-                    }
-                }
             }
 
             $this->alreadyInSave = false;
@@ -1077,36 +1024,6 @@ abstract class Scene implements ActiveRecordInterface
                 }
 
                 $result[$key] = $this->aTrap->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
-            }
-            if (null !== $this->aSceneRelatedByParentSceneId) {
-
-                switch ($keyType) {
-                    case TableMap::TYPE_CAMELNAME:
-                        $key = 'scene';
-                        break;
-                    case TableMap::TYPE_FIELDNAME:
-                        $key = 'scene';
-                        break;
-                    default:
-                        $key = 'Scene';
-                }
-
-                $result[$key] = $this->aSceneRelatedByParentSceneId->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
-            }
-            if (null !== $this->collScenesRelatedById) {
-
-                switch ($keyType) {
-                    case TableMap::TYPE_CAMELNAME:
-                        $key = 'scenes';
-                        break;
-                    case TableMap::TYPE_FIELDNAME:
-                        $key = 'scenes';
-                        break;
-                    default:
-                        $key = 'Scenes';
-                }
-
-                $result[$key] = $this->collScenesRelatedById->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
         }
 
@@ -1354,20 +1271,6 @@ abstract class Scene implements ActiveRecordInterface
         $copyObj->setParentSceneId($this->getParentSceneId());
         $copyObj->setDescription($this->getDescription());
         $copyObj->setPlacement($this->getPlacement());
-
-        if ($deepCopy) {
-            // important: temporarily setNew(false) because this affects the behavior of
-            // the getter/setter methods for fkey referrer objects.
-            $copyObj->setNew(false);
-
-            foreach ($this->getScenesRelatedById() as $relObj) {
-                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
-                    $copyObj->addSceneRelatedById($relObj->copy($deepCopy));
-                }
-            }
-
-        } // if ($deepCopy)
-
         if ($makeNew) {
             $copyObj->setNew(true);
             $copyObj->setId(NULL); // this is a auto-increment column, so set to default value
@@ -1499,349 +1402,6 @@ abstract class Scene implements ActiveRecordInterface
     }
 
     /**
-     * Declares an association between this object and a ChildScene object.
-     *
-     * @param  ChildScene $v
-     * @return $this|\Scene The current object (for fluent API support)
-     * @throws PropelException
-     */
-    public function setSceneRelatedByParentSceneId(ChildScene $v = null)
-    {
-        if ($v === null) {
-            $this->setParentSceneId(NULL);
-        } else {
-            $this->setParentSceneId($v->getId());
-        }
-
-        $this->aSceneRelatedByParentSceneId = $v;
-
-        // Add binding for other direction of this n:n relationship.
-        // If this object has already been added to the ChildScene object, it will not be re-added.
-        if ($v !== null) {
-            $v->addSceneRelatedById($this);
-        }
-
-
-        return $this;
-    }
-
-
-    /**
-     * Get the associated ChildScene object
-     *
-     * @param  ConnectionInterface $con Optional Connection object.
-     * @return ChildScene The associated ChildScene object.
-     * @throws PropelException
-     */
-    public function getSceneRelatedByParentSceneId(ConnectionInterface $con = null)
-    {
-        if ($this->aSceneRelatedByParentSceneId === null && ($this->parent_scene_id != 0)) {
-            $this->aSceneRelatedByParentSceneId = ChildSceneQuery::create()->findPk($this->parent_scene_id, $con);
-            /* The following can be used additionally to
-                guarantee the related object contains a reference
-                to this object.  This level of coupling may, however, be
-                undesirable since it could result in an only partially populated collection
-                in the referenced object.
-                $this->aSceneRelatedByParentSceneId->addScenesRelatedById($this);
-             */
-        }
-
-        return $this->aSceneRelatedByParentSceneId;
-    }
-
-
-    /**
-     * Initializes a collection based on the name of a relation.
-     * Avoids crafting an 'init[$relationName]s' method name
-     * that wouldn't work when StandardEnglishPluralizer is used.
-     *
-     * @param      string $relationName The name of the relation to initialize
-     * @return void
-     */
-    public function initRelation($relationName)
-    {
-        if ('SceneRelatedById' == $relationName) {
-            $this->initScenesRelatedById();
-            return;
-        }
-    }
-
-    /**
-     * Clears out the collScenesRelatedById collection
-     *
-     * This does not modify the database; however, it will remove any associated objects, causing
-     * them to be refetched by subsequent calls to accessor method.
-     *
-     * @return void
-     * @see        addScenesRelatedById()
-     */
-    public function clearScenesRelatedById()
-    {
-        $this->collScenesRelatedById = null; // important to set this to NULL since that means it is uninitialized
-    }
-
-    /**
-     * Reset is the collScenesRelatedById collection loaded partially.
-     */
-    public function resetPartialScenesRelatedById($v = true)
-    {
-        $this->collScenesRelatedByIdPartial = $v;
-    }
-
-    /**
-     * Initializes the collScenesRelatedById collection.
-     *
-     * By default this just sets the collScenesRelatedById collection to an empty array (like clearcollScenesRelatedById());
-     * however, you may wish to override this method in your stub class to provide setting appropriate
-     * to your application -- for example, setting the initial array to the values stored in database.
-     *
-     * @param      boolean $overrideExisting If set to true, the method call initializes
-     *                                        the collection even if it is not empty
-     *
-     * @return void
-     */
-    public function initScenesRelatedById($overrideExisting = true)
-    {
-        if (null !== $this->collScenesRelatedById && !$overrideExisting) {
-            return;
-        }
-
-        $collectionClassName = SceneTableMap::getTableMap()->getCollectionClassName();
-
-        $this->collScenesRelatedById = new $collectionClassName;
-        $this->collScenesRelatedById->setModel('\Scene');
-    }
-
-    /**
-     * Gets an array of ChildScene objects which contain a foreign key that references this object.
-     *
-     * If the $criteria is not null, it is used to always fetch the results from the database.
-     * Otherwise the results are fetched from the database the first time, then cached.
-     * Next time the same method is called without $criteria, the cached collection is returned.
-     * If this ChildScene is new, it will return
-     * an empty collection or the current collection; the criteria is ignored on a new object.
-     *
-     * @param      Criteria $criteria optional Criteria object to narrow the query
-     * @param      ConnectionInterface $con optional connection object
-     * @return ObjectCollection|ChildScene[] List of ChildScene objects
-     * @throws PropelException
-     */
-    public function getScenesRelatedById(Criteria $criteria = null, ConnectionInterface $con = null)
-    {
-        $partial = $this->collScenesRelatedByIdPartial && !$this->isNew();
-        if (null === $this->collScenesRelatedById || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collScenesRelatedById) {
-                // return empty collection
-                $this->initScenesRelatedById();
-            } else {
-                $collScenesRelatedById = ChildSceneQuery::create(null, $criteria)
-                    ->filterBySceneRelatedByParentSceneId($this)
-                    ->find($con);
-
-                if (null !== $criteria) {
-                    if (false !== $this->collScenesRelatedByIdPartial && count($collScenesRelatedById)) {
-                        $this->initScenesRelatedById(false);
-
-                        foreach ($collScenesRelatedById as $obj) {
-                            if (false == $this->collScenesRelatedById->contains($obj)) {
-                                $this->collScenesRelatedById->append($obj);
-                            }
-                        }
-
-                        $this->collScenesRelatedByIdPartial = true;
-                    }
-
-                    return $collScenesRelatedById;
-                }
-
-                if ($partial && $this->collScenesRelatedById) {
-                    foreach ($this->collScenesRelatedById as $obj) {
-                        if ($obj->isNew()) {
-                            $collScenesRelatedById[] = $obj;
-                        }
-                    }
-                }
-
-                $this->collScenesRelatedById = $collScenesRelatedById;
-                $this->collScenesRelatedByIdPartial = false;
-            }
-        }
-
-        return $this->collScenesRelatedById;
-    }
-
-    /**
-     * Sets a collection of ChildScene objects related by a one-to-many relationship
-     * to the current object.
-     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-     * and new objects from the given Propel collection.
-     *
-     * @param      Collection $scenesRelatedById A Propel collection.
-     * @param      ConnectionInterface $con Optional connection object
-     * @return $this|ChildScene The current object (for fluent API support)
-     */
-    public function setScenesRelatedById(Collection $scenesRelatedById, ConnectionInterface $con = null)
-    {
-        /** @var ChildScene[] $scenesRelatedByIdToDelete */
-        $scenesRelatedByIdToDelete = $this->getScenesRelatedById(new Criteria(), $con)->diff($scenesRelatedById);
-
-
-        $this->scenesRelatedByIdScheduledForDeletion = $scenesRelatedByIdToDelete;
-
-        foreach ($scenesRelatedByIdToDelete as $sceneRelatedByIdRemoved) {
-            $sceneRelatedByIdRemoved->setSceneRelatedByParentSceneId(null);
-        }
-
-        $this->collScenesRelatedById = null;
-        foreach ($scenesRelatedById as $sceneRelatedById) {
-            $this->addSceneRelatedById($sceneRelatedById);
-        }
-
-        $this->collScenesRelatedById = $scenesRelatedById;
-        $this->collScenesRelatedByIdPartial = false;
-
-        return $this;
-    }
-
-    /**
-     * Returns the number of related Scene objects.
-     *
-     * @param      Criteria $criteria
-     * @param      boolean $distinct
-     * @param      ConnectionInterface $con
-     * @return int             Count of related Scene objects.
-     * @throws PropelException
-     */
-    public function countScenesRelatedById(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
-    {
-        $partial = $this->collScenesRelatedByIdPartial && !$this->isNew();
-        if (null === $this->collScenesRelatedById || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collScenesRelatedById) {
-                return 0;
-            }
-
-            if ($partial && !$criteria) {
-                return count($this->getScenesRelatedById());
-            }
-
-            $query = ChildSceneQuery::create(null, $criteria);
-            if ($distinct) {
-                $query->distinct();
-            }
-
-            return $query
-                ->filterBySceneRelatedByParentSceneId($this)
-                ->count($con);
-        }
-
-        return count($this->collScenesRelatedById);
-    }
-
-    /**
-     * Method called to associate a ChildScene object to this object
-     * through the ChildScene foreign key attribute.
-     *
-     * @param  ChildScene $l ChildScene
-     * @return $this|\Scene The current object (for fluent API support)
-     */
-    public function addSceneRelatedById(ChildScene $l)
-    {
-        if ($this->collScenesRelatedById === null) {
-            $this->initScenesRelatedById();
-            $this->collScenesRelatedByIdPartial = true;
-        }
-
-        if (!$this->collScenesRelatedById->contains($l)) {
-            $this->doAddSceneRelatedById($l);
-
-            if ($this->scenesRelatedByIdScheduledForDeletion and $this->scenesRelatedByIdScheduledForDeletion->contains($l)) {
-                $this->scenesRelatedByIdScheduledForDeletion->remove($this->scenesRelatedByIdScheduledForDeletion->search($l));
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param ChildScene $sceneRelatedById The ChildScene object to add.
-     */
-    protected function doAddSceneRelatedById(ChildScene $sceneRelatedById)
-    {
-        $this->collScenesRelatedById[]= $sceneRelatedById;
-        $sceneRelatedById->setSceneRelatedByParentSceneId($this);
-    }
-
-    /**
-     * @param  ChildScene $sceneRelatedById The ChildScene object to remove.
-     * @return $this|ChildScene The current object (for fluent API support)
-     */
-    public function removeSceneRelatedById(ChildScene $sceneRelatedById)
-    {
-        if ($this->getScenesRelatedById()->contains($sceneRelatedById)) {
-            $pos = $this->collScenesRelatedById->search($sceneRelatedById);
-            $this->collScenesRelatedById->remove($pos);
-            if (null === $this->scenesRelatedByIdScheduledForDeletion) {
-                $this->scenesRelatedByIdScheduledForDeletion = clone $this->collScenesRelatedById;
-                $this->scenesRelatedByIdScheduledForDeletion->clear();
-            }
-            $this->scenesRelatedByIdScheduledForDeletion[]= clone $sceneRelatedById;
-            $sceneRelatedById->setSceneRelatedByParentSceneId(null);
-        }
-
-        return $this;
-    }
-
-
-    /**
-     * If this collection has already been initialized with
-     * an identical criteria, it returns the collection.
-     * Otherwise if this Scene is new, it will return
-     * an empty collection; or if this Scene has previously
-     * been saved, it will retrieve related ScenesRelatedById from storage.
-     *
-     * This method is protected by default in order to keep the public
-     * api reasonable.  You can provide public methods for those you
-     * actually need in Scene.
-     *
-     * @param      Criteria $criteria optional Criteria object to narrow the query
-     * @param      ConnectionInterface $con optional connection object
-     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
-     * @return ObjectCollection|ChildScene[] List of ChildScene objects
-     */
-    public function getScenesRelatedByIdJoinItem(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
-    {
-        $query = ChildSceneQuery::create(null, $criteria);
-        $query->joinWith('Item', $joinBehavior);
-
-        return $this->getScenesRelatedById($query, $con);
-    }
-
-
-    /**
-     * If this collection has already been initialized with
-     * an identical criteria, it returns the collection.
-     * Otherwise if this Scene is new, it will return
-     * an empty collection; or if this Scene has previously
-     * been saved, it will retrieve related ScenesRelatedById from storage.
-     *
-     * This method is protected by default in order to keep the public
-     * api reasonable.  You can provide public methods for those you
-     * actually need in Scene.
-     *
-     * @param      Criteria $criteria optional Criteria object to narrow the query
-     * @param      ConnectionInterface $con optional connection object
-     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
-     * @return ObjectCollection|ChildScene[] List of ChildScene objects
-     */
-    public function getScenesRelatedByIdJoinTrap(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
-    {
-        $query = ChildSceneQuery::create(null, $criteria);
-        $query->joinWith('Trap', $joinBehavior);
-
-        return $this->getScenesRelatedById($query, $con);
-    }
-
-    /**
      * Clears the current object, sets all attributes to their default values and removes
      * outgoing references as well as back-references (from other objects to this one. Results probably in a database
      * change of those foreign objects when you call `save` there).
@@ -1853,9 +1413,6 @@ abstract class Scene implements ActiveRecordInterface
         }
         if (null !== $this->aTrap) {
             $this->aTrap->removeScene($this);
-        }
-        if (null !== $this->aSceneRelatedByParentSceneId) {
-            $this->aSceneRelatedByParentSceneId->removeSceneRelatedById($this);
         }
         $this->id = null;
         $this->item_id = null;
@@ -1881,17 +1438,10 @@ abstract class Scene implements ActiveRecordInterface
     public function clearAllReferences($deep = false)
     {
         if ($deep) {
-            if ($this->collScenesRelatedById) {
-                foreach ($this->collScenesRelatedById as $o) {
-                    $o->clearAllReferences($deep);
-                }
-            }
         } // if ($deep)
 
-        $this->collScenesRelatedById = null;
         $this->aItem = null;
         $this->aTrap = null;
-        $this->aSceneRelatedByParentSceneId = null;
     }
 
     /**
