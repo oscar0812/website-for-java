@@ -11,6 +11,31 @@ function session_start_safe()
     }
 }
 
+// log user in (save a session for it)
+function logIn()
+{
+    // only allow log in if email is confirmed
+    session_start_safe();
+    $_SESSION['user_id'] = 1;
+}
+
+// log user out (remove session)
+function logOut()
+{
+    session_start_safe();
+    unset($_SESSION['user_id']);
+}
+
+// return user that is currently logged in, null if no user logged in
+function loggedIn()
+{
+    session_start_safe();
+    if (isset($_SESSION['user_id'])) {
+        return true;
+    }
+    return false;
+}
+
 function replaceFirst($replace_this, $with_this, $original)
 {
     $pos = strpos($original, $replace_this);

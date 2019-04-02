@@ -37,8 +37,9 @@ $(function() {
   toggle = $('#switch');
 
   // set toggle from cookie on load
-  toggle.prop("checked", Cookies.get('checked') == "true");
-  
+  if (typeof Cookies != 'undefined')
+    toggle.prop("checked", Cookies.get('checked') == "true");
+
   toggle.on('change', function() {
     if (!toggle.prop("checked")) {
       $('#sortable li').css('background-color', 'white');
