@@ -28,16 +28,33 @@ $app->post('/item-dropped', function ($request, $response, $args) {
     return $response->withJson(['success'=>true, 'from'=>$oldIndex, 'to'=>$newIndex]);
 })->setName('item-dropped');
 
-// get all items and traps and scenes
-$app->get('/json', function ($request, $response, $args) {
-    $params = $request->getParsedBody();
+function getAllArray()
+{
     $traps = \TrapQuery::create()->find();
     $items = \ItemQuery::create()->find();
     $scenes = \SceneQuery::create()->find();
 
-    return $response->withJson(['traps'=>$traps->toArray(),
-  'items'=>$items->toArray(), 'scenes'=>$scenes->toArray()]);
+    return ['traps'=>$traps->toArray(), 'items'=>$items->toArray(), 'scenes'=>$scenes->toArray()];
+}
+
+// get all items and traps and scenes
+$app->get('/json', function ($request, $response, $args) {
+    return $response->withJson(getAllArray());
 })->setName('json');
+
+$app->post('/scene-info', function ($request, $response, $args) {
+    $params = $request->getParsedBody();
+    if (isset($params['id'])) {
+        $scene = \SceneQuery::create()->findOneById($params['id']);
+        if ($scene == null) {
+            return $response->withJson(['success'=>false, 'msg'=>'Null Scene']);
+        }
+
+        return $response->withJson(['success'=>true, 'scene'=>$scene->toArray(), 'info'=>getAllArray()]);
+    }
+
+    return $response->withJson(['success'=>false]);
+})->setName('scene-info');
 
 // add new row to database
 $app->post('/add', function ($request, $response, $args) {
@@ -57,7 +74,11 @@ $app->post('/add', function ($request, $response, $args) {
 
         $item->save();
     } elseif ($params['type'] == 'scene') {
-        $scene = new \Scene();
+        if (isset($params['scene_id'])) {
+            $scene = \SceneQuery::create()->findOneById($params['scene_id']);
+        } else {
+            $scene = new \Scene();
+        }
         $scene->setItemId($params['item_choice']);
         $scene->setTrapId($params['trap_choice']);
         $scene->setDescription($params['description']);
@@ -65,7 +86,9 @@ $app->post('/add', function ($request, $response, $args) {
 
 
         $scene->save();
-        \Scene::orderPlacement($scene->getId(), 1);
+        if (!isset($params['scene_id'])) {
+            \Scene::orderPlacement($scene->getId(), 1);
+        }
         $params['id'] = $scene->getId();
     }
 

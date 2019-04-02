@@ -60,39 +60,80 @@ $(function() {
     }
   });
 
-  $('[data-target="#newSceneModal"]').on('click', function() {
-    // new scene modal button clicked (load the traps and items)
-    btn = $(this);
+  function loadValues(id) {
     items = $('[name="item_choice"]');
     traps = $('[name="trap_choice"]');
     parents = $('[name="parent_choice"]');
 
+    url = id == 0 ? $('body').attr('data-json') : $('body').attr('data-scene-info');
+    method = id == 0 ? "get" : "post";
+
     $.ajax({
-      url: btn.attr('data-url'),
-      method: 'get',
+      url: url,
+      method: method,
+      data: {
+        id: id
+      },
       success: function(data) {
-        console.log(data);
+        info = id == 0 ? data : data.info;
+        desc = id == 0 ? "" : data.scene.Description;
+        itemId = id == 0 ? -1 : data.scene.ItemId;
+        trapId = id == 0 ? -1 : data.scene.TrapId;
+        parentId = id == 0 ? -1 : data.scene.ParentSceneId;
+
         items.children().remove();
         traps.children().remove();
         parents.children().not('[value="0"]').remove();
 
         // append the data onto dropdowns
-        $.each(data.items, function(i, v) {
+        $.each(info.items, function(i, v) {
           o = $('<option>').text(v.Name).attr('value', v.Id);
+
+          if (v.Id == itemId) {
+            o.attr('selected', true);
+          }
+
           items.append(o);
         });
 
-        $.each(data.traps, function(i, v) {
+        $.each(info.traps, function(i, v) {
           o = $('<option>').text(v.Name).attr('value', v.Id);
+
+          if (v.Id == trapId) {
+            o.attr('selected', true);
+          }
+
           traps.append(o);
         });
 
-        $.each(data.scenes, function(i, v) {
+        $.each(info.scenes, function(i, v) {
           o = $('<option>').text(v.Description).attr('value', v.Id);
+
+          if (v.Id == parentId) {
+            o.attr('selected', true);
+          }
+
           parents.append(o);
         });
+
+        // set the description
+        $('#editSceneModal textarea').val(desc);
       }
     });
+  }
+
+  // new scene modal button clicked (load the traps, items, and scenes)
+  $('[data-target="#newSceneModal"]').on('click', function() {
+    loadValues(0);
+  });
+
+  $('#sortable [data-target="#editSceneModal"]').on('click', function() {
+    li = $(this).closest('li');
+    id = li.attr('data-id');
+    // set the id
+    $('#editSceneModal').find('input[name="scene_id"]').val(id);
+
+    loadValues(id);
   });
 
   $('div.modal form').on('submit', function(e) {

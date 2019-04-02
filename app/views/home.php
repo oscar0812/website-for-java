@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body data-form-url="<?=$router->pathFor('add')?>">
+<body data-form-url="<?=$router->pathFor('add')?>" data-scene-info="<?=$router->pathFor('scene-info')?>" data-json="<?=$router->pathFor('json')?>">
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="<?=$router->pathFor('home')?>">Java</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,7 @@
               <i class="fa fa-plus"></i>
               Trap
             </button>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newSceneModal" data-url="<?=$router->pathFor('json')?>">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newSceneModal">
               <i class="fa fa-plus"></i>
               Scene
             </button>
@@ -82,8 +82,8 @@
           </p>
         </div>
         <div class="btn-group float-sm-right col-sm-3">
-          <button class="align-middle btn btn-warning">Edit</button>
-          <button class="align-middle btn btn-danger">Delete</button>
+          <button class="align-middle btn btn-warning edit-btn" data-toggle="modal" data-target="#editSceneModal">Edit</button>
+          <button class="align-middle btn btn-danger delete-btn">Delete</button>
         </div>
       </li>
       <?php } ?>
@@ -186,8 +186,6 @@
               <div class="form-group col-md-6">
                 <label>Trap</label>
                 <select class="form-control" name="trap_choice">
-                  <option selected>Choose...</option>
-                  <option>...</option>
                 </select>
               </div>
             </div>
@@ -203,6 +201,56 @@
             </div>
             <input type="hidden" name="type" value="scene">
             <button type="submit" class="btn btn-primary">Create</button>
+          </form>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="editSceneModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Edit Scene</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="modal-body">
+          <form>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label>Item</label>
+                <select class="form-control" name="item_choice">
+                </select>
+              </div>
+              <div class="form-group col-md-6">
+                <label>Trap</label>
+                <select class="form-control" name="trap_choice">
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Parent Scene</label>
+              <select class="form-control" name="parent_choice">
+                <option value="0" selected>None</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Text</label>
+              <textarea class="form-control" rows="3" placeholder="Describe the scene..." name="description"></textarea>
+            </div>
+            <input type="hidden" name="type" value="scene">
+            <input type="hidden" name="scene_id" value="0">
+            <button type="submit" class="btn btn-primary">Update</button>
           </form>
         </div>
 
