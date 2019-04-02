@@ -41,8 +41,14 @@ $(function() {
 
   */
 
-  // when li is hovered
   toggle = $('#switch');
+  toggle.on('change', function() {
+    if (!toggle.prop("checked")) {
+      $('#sortable li').css('background-color', 'white');
+    }
+  })
+  // when li is hovered
+
   $('#sortable li').hover(function(e) {
     isChecked = toggle.prop("checked");
     if (isChecked) {
@@ -57,6 +63,8 @@ $(function() {
       pId = $(this).attr('data-parent-id');
       parents = $('#sortable li[data-id="' + pId + '"]');
       parents.css('background-color', '#69f0ae');
+
+      $(this).css('background-color', '#e0e0e0');
     }
   });
 
@@ -145,16 +153,26 @@ $(function() {
       if (data.params.type == 'scene') {
         sortable = $('#sortable');
 
-        invisible = sortable.find('.invisible');
-        template = invisible.clone().removeClass('invisible');
-        template.attr('data-id', data.params.id);
-        template.attr('data-parent-id', data.params.parent_choice);
-        template.find('.scene-id').text(data.params.id);
-        template.find('.scene-description').text(data.params.description);
+        // adding, not editing
+        if (typeof data.params.scene_id == 'undefined') {
 
-        invisible.after(template);
+          invisible = sortable.find('.invisible');
+          template = invisible.clone().removeClass('invisible');
+          template.attr('data-id', data.params.id);
+          template.attr('data-parent-id', data.params.parent_choice);
+          template.find('.scene-id').text(data.params.id);
+          template.find('.scene-description').text(data.params.description);
 
-        msg = "Added Scene Successfully";
+          invisible.after(template);
+
+          msg = "Added Scene Successfully";
+        } else {
+          // editing, not adding
+          li = $('li[data-id="' + data.params.scene_id + '"]').eq(0);
+          li.find('.scene-description').text(data.params.description);
+          li.attr('data-parent-id', data.params.parent_choice);
+          msg = "Edited Scene Successfully";
+        }
       } else if (data.params.type == 'item') {
         msg = "Added Item Successfully";
       } else if (data.params.type == 'trap') {
