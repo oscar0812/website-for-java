@@ -12,6 +12,8 @@ function ajaxForm(form, callback) {
 }
 
 $(function() {
+  $('[data-toggle="tooltip"]').tooltip();
+  
   $("#sortable").sortable({
     handle: '.fa-arrows',
     update: function(item, ui) {
@@ -31,15 +33,6 @@ $(function() {
       });
     }
   });
-
-  /*
-
-  Snackbar.show({
-    actionTextColor: '#00FF00',
-    text: "Updated"
-  });
-
-  */
 
   toggle = $('#switch');
   toggle.on('change', function() {
@@ -135,6 +128,7 @@ $(function() {
     loadValues(0);
   });
 
+  // edit button clicked
   $('#sortable [data-target="#editSceneModal"]').on('click', function() {
     li = $(this).closest('li');
     id = li.attr('data-id');
@@ -142,6 +136,41 @@ $(function() {
     $('#editSceneModal').find('input[name="scene_id"]').val(id);
 
     loadValues(id);
+  });
+
+  // delete button clicked (in li)
+  $('#sortable [data-target="#deleteSceneModal"]').on('click', function() {
+    li = $(this).closest('li');
+    id = li.attr('data-id');
+
+    $('#deleteSceneModal').attr('data-id', id);
+  });
+
+  // confirm delete button in dialog clicked
+  $('#deleteSceneModal .delete-btn').on('click', function() {
+    modal = $('#deleteSceneModal');
+    $.ajax({
+      url: modal.attr('data-url'),
+      method: 'POST',
+      data: {
+        id: modal.attr('data-id')
+      },
+      success: function(data) {
+        msg = "";
+        color = data.success ? "#00FF00" : "#FF0000";
+        if (data.success) {
+          li = $('#sortable li[data-id="' + modal.attr('data-id') + '"]');
+          li.remove();
+          modal.modal('hide');
+          msg = "Scene Deleted";
+        }
+
+        Snackbar.show({
+          actionTextColor: color,
+          text: msg
+        });
+      }
+    });
   });
 
   $('div.modal form').on('submit', function(e) {

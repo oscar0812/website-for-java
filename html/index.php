@@ -95,4 +95,21 @@ $app->post('/add', function ($request, $response, $args) {
     return $response->withJson(['success'=>true, 'params'=>$params]);
 })->setName('add');
 
+// delete scene
+$app->post('/delete-scene', function ($request, $response, $args) {
+    $params = $request->getParsedBody();
+
+    if (isset($params['id'])) {
+        $scene = \SceneQuery::create()->findOneById($params['id']);
+        if ($scene == null) {
+            return $response->withJson(['success'=>false, 'msg'=>'Null Scene']);
+        }
+
+        $scene->delete();
+        return $response->withJson(['success'=>true]);
+    }
+
+    return $response->withJson(['success'=>false, 'msg'=>'No ID']);
+})->setName('delete-scene');
+
 $app->run();

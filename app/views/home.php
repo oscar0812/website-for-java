@@ -52,7 +52,7 @@
           <div class="float-sm-right col-sm-3">
             <div class="custom-control custom-switch">
               <input type="checkbox" class="custom-control-input" id="switch" name="name">
-              <label class="custom-control-label" for="switch">Show colors</label>
+              <label class="custom-control-label" for="switch" data-toggle="tooltip" data-placement="top" data-html="true" title="Green - Parent<br>Pink - Children">Show colors</label>
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@
         </div>
         <div class="btn-group float-sm-right col-sm-3">
           <button class="align-middle btn btn-warning edit-btn" data-toggle="modal" data-target="#editSceneModal">Edit</button>
-          <button class="align-middle btn btn-danger delete-btn">Delete</button>
+          <button class="align-middle btn btn-danger delete-btn" data-toggle="modal" data-target="#deleteSceneModal">Delete</button>
         </div>
       </li>
       <?php } ?>
@@ -257,6 +257,31 @@
         <!-- Modal footer -->
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="deleteSceneModal" data-url="<?=$router->pathFor('delete-scene')?>">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Are You Sure?</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="modal-body">
+          <p>Are you super sure you want to delete this scene? You <b>can't</b> go back!</p>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger delete-btn">Delete</button>
         </div>
 
       </div>
