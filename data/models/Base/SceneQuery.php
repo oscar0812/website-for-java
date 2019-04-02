@@ -62,7 +62,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildSceneQuery rightJoinWithTrap() Adds a RIGHT JOIN clause and with to the query using the Trap relation
  * @method     ChildSceneQuery innerJoinWithTrap() Adds a INNER JOIN clause and with to the query using the Trap relation
  *
- * @method     \ItemQuery|\TrapQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     \ItemQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
  * @method     ChildScene findOne(ConnectionInterface $con = null) Return the first ChildScene matching the query
  * @method     ChildScene findOneOrCreate(ConnectionInterface $con = null) Return the first ChildScene matching the query, or a new ChildScene object populated from the query conditions when no match is found
@@ -591,29 +591,29 @@ abstract class SceneQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query by a related \Trap object
+     * Filter the query by a related \Item object
      *
-     * @param \Trap|ObjectCollection $trap The related object(s) to use as filter
+     * @param \Item|ObjectCollection $item The related object(s) to use as filter
      * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @throws \Propel\Runtime\Exception\PropelException
      *
      * @return ChildSceneQuery The current query, for fluid interface
      */
-    public function filterByTrap($trap, $comparison = null)
+    public function filterByTrap($item, $comparison = null)
     {
-        if ($trap instanceof \Trap) {
+        if ($item instanceof \Item) {
             return $this
-                ->addUsingAlias(SceneTableMap::COL_TRAP_ID, $trap->getId(), $comparison);
-        } elseif ($trap instanceof ObjectCollection) {
+                ->addUsingAlias(SceneTableMap::COL_TRAP_ID, $item->getId(), $comparison);
+        } elseif ($item instanceof ObjectCollection) {
             if (null === $comparison) {
                 $comparison = Criteria::IN;
             }
 
             return $this
-                ->addUsingAlias(SceneTableMap::COL_TRAP_ID, $trap->toKeyValue('PrimaryKey', 'Id'), $comparison);
+                ->addUsingAlias(SceneTableMap::COL_TRAP_ID, $item->toKeyValue('PrimaryKey', 'Id'), $comparison);
         } else {
-            throw new PropelException('filterByTrap() only accepts arguments of type \Trap or Collection');
+            throw new PropelException('filterByTrap() only accepts arguments of type \Item or Collection');
         }
     }
 
@@ -650,7 +650,7 @@ abstract class SceneQuery extends ModelCriteria
     }
 
     /**
-     * Use the Trap relation Trap object
+     * Use the Trap relation Item object
      *
      * @see useQuery()
      *
@@ -658,13 +658,13 @@ abstract class SceneQuery extends ModelCriteria
      *                                   to be used as main alias in the secondary query
      * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
      *
-     * @return \TrapQuery A secondary query class using the current class as primary query
+     * @return \ItemQuery A secondary query class using the current class as primary query
      */
     public function useTrapQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
     {
         return $this
             ->joinTrap($relationAlias, $joinType)
-            ->useQuery($relationAlias ? $relationAlias : 'Trap', '\TrapQuery');
+            ->useQuery($relationAlias ? $relationAlias : 'Trap', '\ItemQuery');
     }
 
     /**

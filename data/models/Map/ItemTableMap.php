@@ -59,7 +59,7 @@ class ItemTableMap extends TableMap
     /**
      * The total number of columns
      */
-    const NUM_COLUMNS = 3;
+    const NUM_COLUMNS = 5;
 
     /**
      * The number of lazy-loaded columns
@@ -69,7 +69,7 @@ class ItemTableMap extends TableMap
     /**
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
-    const NUM_HYDRATE_COLUMNS = 3;
+    const NUM_HYDRATE_COLUMNS = 5;
 
     /**
      * the column name for the id field
@@ -87,6 +87,16 @@ class ItemTableMap extends TableMap
     const COL_DESCRIPTION = 'item.description';
 
     /**
+     * the column name for the damage field
+     */
+    const COL_DAMAGE = 'item.damage';
+
+    /**
+     * the column name for the is_trap field
+     */
+    const COL_IS_TRAP = 'item.is_trap';
+
+    /**
      * The default string format for model objects of the related table
      */
     const DEFAULT_STRING_FORMAT = 'YAML';
@@ -98,11 +108,11 @@ class ItemTableMap extends TableMap
      * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        self::TYPE_PHPNAME       => array('Id', 'Name', 'Description', ),
-        self::TYPE_CAMELNAME     => array('id', 'name', 'description', ),
-        self::TYPE_COLNAME       => array(ItemTableMap::COL_ID, ItemTableMap::COL_NAME, ItemTableMap::COL_DESCRIPTION, ),
-        self::TYPE_FIELDNAME     => array('id', 'name', 'description', ),
-        self::TYPE_NUM           => array(0, 1, 2, )
+        self::TYPE_PHPNAME       => array('Id', 'Name', 'Description', 'Damage', 'IsTrap', ),
+        self::TYPE_CAMELNAME     => array('id', 'name', 'description', 'damage', 'isTrap', ),
+        self::TYPE_COLNAME       => array(ItemTableMap::COL_ID, ItemTableMap::COL_NAME, ItemTableMap::COL_DESCRIPTION, ItemTableMap::COL_DAMAGE, ItemTableMap::COL_IS_TRAP, ),
+        self::TYPE_FIELDNAME     => array('id', 'name', 'description', 'damage', 'is_trap', ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, )
     );
 
     /**
@@ -112,11 +122,11 @@ class ItemTableMap extends TableMap
      * e.g. self::$fieldKeys[self::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        self::TYPE_PHPNAME       => array('Id' => 0, 'Name' => 1, 'Description' => 2, ),
-        self::TYPE_CAMELNAME     => array('id' => 0, 'name' => 1, 'description' => 2, ),
-        self::TYPE_COLNAME       => array(ItemTableMap::COL_ID => 0, ItemTableMap::COL_NAME => 1, ItemTableMap::COL_DESCRIPTION => 2, ),
-        self::TYPE_FIELDNAME     => array('id' => 0, 'name' => 1, 'description' => 2, ),
-        self::TYPE_NUM           => array(0, 1, 2, )
+        self::TYPE_PHPNAME       => array('Id' => 0, 'Name' => 1, 'Description' => 2, 'Damage' => 3, 'IsTrap' => 4, ),
+        self::TYPE_CAMELNAME     => array('id' => 0, 'name' => 1, 'description' => 2, 'damage' => 3, 'isTrap' => 4, ),
+        self::TYPE_COLNAME       => array(ItemTableMap::COL_ID => 0, ItemTableMap::COL_NAME => 1, ItemTableMap::COL_DESCRIPTION => 2, ItemTableMap::COL_DAMAGE => 3, ItemTableMap::COL_IS_TRAP => 4, ),
+        self::TYPE_FIELDNAME     => array('id' => 0, 'name' => 1, 'description' => 2, 'damage' => 3, 'is_trap' => 4, ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, )
     );
 
     /**
@@ -139,6 +149,8 @@ class ItemTableMap extends TableMap
         $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
         $this->addColumn('name', 'Name', 'VARCHAR', true, 128, null);
         $this->addColumn('description', 'Description', 'VARCHAR', true, 2048, null);
+        $this->addColumn('damage', 'Damage', 'INTEGER', true, null, null);
+        $this->addColumn('is_trap', 'IsTrap', 'BOOLEAN', true, 1, null);
     } // initialize()
 
     /**
@@ -146,13 +158,20 @@ class ItemTableMap extends TableMap
      */
     public function buildRelations()
     {
-        $this->addRelation('Scene', '\\Scene', RelationMap::ONE_TO_MANY, array (
+        $this->addRelation('SceneRelatedByItemId', '\\Scene', RelationMap::ONE_TO_MANY, array (
   0 =>
   array (
     0 => ':item_id',
     1 => ':id',
   ),
-), null, null, 'Scenes', false);
+), null, null, 'ScenesRelatedByItemId', false);
+        $this->addRelation('SceneRelatedByTrapId', '\\Scene', RelationMap::ONE_TO_MANY, array (
+  0 =>
+  array (
+    0 => ':trap_id',
+    1 => ':id',
+  ),
+), null, null, 'ScenesRelatedByTrapId', false);
     } // buildRelations()
 
     /**
@@ -299,10 +318,14 @@ class ItemTableMap extends TableMap
             $criteria->addSelectColumn(ItemTableMap::COL_ID);
             $criteria->addSelectColumn(ItemTableMap::COL_NAME);
             $criteria->addSelectColumn(ItemTableMap::COL_DESCRIPTION);
+            $criteria->addSelectColumn(ItemTableMap::COL_DAMAGE);
+            $criteria->addSelectColumn(ItemTableMap::COL_IS_TRAP);
         } else {
             $criteria->addSelectColumn($alias . '.id');
             $criteria->addSelectColumn($alias . '.name');
             $criteria->addSelectColumn($alias . '.description');
+            $criteria->addSelectColumn($alias . '.damage');
+            $criteria->addSelectColumn($alias . '.is_trap');
         }
     }
 

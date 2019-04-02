@@ -153,7 +153,7 @@ class SceneTableMap extends TableMap
         // columns
         $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
         $this->addForeignKey('item_id', 'ItemId', 'INTEGER', 'item', 'id', true, null, null);
-        $this->addForeignKey('trap_id', 'TrapId', 'INTEGER', 'trap', 'id', true, null, null);
+        $this->addForeignKey('trap_id', 'TrapId', 'INTEGER', 'item', 'id', true, null, null);
         $this->addColumn('parent_scene_id', 'ParentSceneId', 'INTEGER', true, null, null);
         $this->addColumn('description', 'Description', 'VARCHAR', true, 16384, null);
         $this->addColumn('placement', 'Placement', 'INTEGER', true, null, null);
@@ -171,7 +171,7 @@ class SceneTableMap extends TableMap
     1 => ':id',
   ),
 ), null, null, null, false);
-        $this->addRelation('Trap', '\\Trap', RelationMap::MANY_TO_ONE, array (
+        $this->addRelation('Trap', '\\Item', RelationMap::MANY_TO_ONE, array (
   0 =>
   array (
     0 => ':trap_id',

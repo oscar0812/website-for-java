@@ -5,8 +5,6 @@ namespace Base;
 use \Item as ChildItem;
 use \ItemQuery as ChildItemQuery;
 use \SceneQuery as ChildSceneQuery;
-use \Trap as ChildTrap;
-use \TrapQuery as ChildTrapQuery;
 use \Exception;
 use \PDO;
 use Map\SceneTableMap;
@@ -111,7 +109,7 @@ abstract class Scene implements ActiveRecordInterface
     protected $aItem;
 
     /**
-     * @var        ChildTrap
+     * @var        ChildItem
      */
     protected $aTrap;
 
@@ -1014,10 +1012,10 @@ abstract class Scene implements ActiveRecordInterface
 
                 switch ($keyType) {
                     case TableMap::TYPE_CAMELNAME:
-                        $key = 'trap';
+                        $key = 'item';
                         break;
                     case TableMap::TYPE_FIELDNAME:
-                        $key = 'trap';
+                        $key = 'item';
                         break;
                     default:
                         $key = 'Trap';
@@ -1319,7 +1317,7 @@ abstract class Scene implements ActiveRecordInterface
         // Add binding for other direction of this n:n relationship.
         // If this object has already been added to the ChildItem object, it will not be re-added.
         if ($v !== null) {
-            $v->addScene($this);
+            $v->addSceneRelatedByItemId($this);
         }
 
 
@@ -1343,7 +1341,7 @@ abstract class Scene implements ActiveRecordInterface
                 to this object.  This level of coupling may, however, be
                 undesirable since it could result in an only partially populated collection
                 in the referenced object.
-                $this->aItem->addScenes($this);
+                $this->aItem->addScenesRelatedByItemId($this);
              */
         }
 
@@ -1351,13 +1349,13 @@ abstract class Scene implements ActiveRecordInterface
     }
 
     /**
-     * Declares an association between this object and a ChildTrap object.
+     * Declares an association between this object and a ChildItem object.
      *
-     * @param  ChildTrap $v
+     * @param  ChildItem $v
      * @return $this|\Scene The current object (for fluent API support)
      * @throws PropelException
      */
-    public function setTrap(ChildTrap $v = null)
+    public function setTrap(ChildItem $v = null)
     {
         if ($v === null) {
             $this->setTrapId(NULL);
@@ -1368,9 +1366,9 @@ abstract class Scene implements ActiveRecordInterface
         $this->aTrap = $v;
 
         // Add binding for other direction of this n:n relationship.
-        // If this object has already been added to the ChildTrap object, it will not be re-added.
+        // If this object has already been added to the ChildItem object, it will not be re-added.
         if ($v !== null) {
-            $v->addScene($this);
+            $v->addSceneRelatedByTrapId($this);
         }
 
 
@@ -1379,22 +1377,22 @@ abstract class Scene implements ActiveRecordInterface
 
 
     /**
-     * Get the associated ChildTrap object
+     * Get the associated ChildItem object
      *
      * @param  ConnectionInterface $con Optional Connection object.
-     * @return ChildTrap The associated ChildTrap object.
+     * @return ChildItem The associated ChildItem object.
      * @throws PropelException
      */
     public function getTrap(ConnectionInterface $con = null)
     {
         if ($this->aTrap === null && ($this->trap_id != 0)) {
-            $this->aTrap = ChildTrapQuery::create()->findPk($this->trap_id, $con);
+            $this->aTrap = ChildItemQuery::create()->findPk($this->trap_id, $con);
             /* The following can be used additionally to
                 guarantee the related object contains a reference
                 to this object.  This level of coupling may, however, be
                 undesirable since it could result in an only partially populated collection
                 in the referenced object.
-                $this->aTrap->addScenes($this);
+                $this->aTrap->addScenesRelatedByTrapId($this);
              */
         }
 
@@ -1409,10 +1407,10 @@ abstract class Scene implements ActiveRecordInterface
     public function clear()
     {
         if (null !== $this->aItem) {
-            $this->aItem->removeScene($this);
+            $this->aItem->removeSceneRelatedByItemId($this);
         }
         if (null !== $this->aTrap) {
-            $this->aTrap->removeScene($this);
+            $this->aTrap->removeSceneRelatedByTrapId($this);
         }
         $this->id = null;
         $this->item_id = null;

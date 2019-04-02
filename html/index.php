@@ -28,8 +28,8 @@ $app->group('', function () use ($app) {
 
     function getAllArray()
     {
-        $traps = \TrapQuery::create()->find();
-        $items = \ItemQuery::create()->find();
+        $items = \ItemQuery::create()->findByIsTrap(false);
+        $traps = \ItemQuery::create()->findByIsTrap(true);
         $scenes = \SceneQuery::create()->find();
 
         return ['traps'=>$traps->toArray(), 'items'=>$items->toArray(), 'scenes'=>$scenes->toArray()];
@@ -59,16 +59,19 @@ $app->group('', function () use ($app) {
         $params = $request->getParsedBody();
 
         if ($params['type'] == 'trap') {
-            $trap = new \Trap();
+            $trap = new \Item();
             $trap->setName($params['name']);
             $trap->setDescription($params['description']);
             $trap->setDamage($params['damage']);
+            $trap->setIsTrap(true);
 
             $trap->save();
         } elseif ($params['type'] == 'item') {
             $item = new \Item();
             $item->setName($params['name']);
             $item->setDescription($params['description']);
+            $item->setDamage($params['damage']);
+            $item->setIsTrap(false);
 
             $item->save();
         } elseif ($params['type'] == 'scene') {
@@ -81,7 +84,6 @@ $app->group('', function () use ($app) {
             $scene->setTrapId($params['trap_choice']);
             $scene->setDescription($params['description']);
             $scene->setParentSceneId($params['parent_choice']);
-
 
             $scene->save();
             if (!isset($params['scene_id'])) {

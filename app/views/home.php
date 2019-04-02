@@ -103,9 +103,17 @@
         <!-- Modal body -->
         <div class="modal-body">
           <form>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label>Name</label>
+                <input class="form-control" placeholder="Item name" name="name">
+              </div>
+              <div class="form-group col-md-6">
+                <label>Damage</label>
+                <input class="form-control" placeholder="30.00" name="damage">
+              </div>
+            </div>
             <div class="form-group">
-              <label>Name</label>
-              <input class="form-control" placeholder="Item name" name="name">
               <label>Description</label>
               <textarea class="form-control" rows="3" placeholder="Describe the item..." name="description"></textarea>
               <input type="hidden" name="type" value="item">

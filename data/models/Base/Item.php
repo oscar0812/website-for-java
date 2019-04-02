@@ -86,10 +86,30 @@ abstract class Item implements ActiveRecordInterface
     protected $description;
 
     /**
+     * The value for the damage field.
+     *
+     * @var        int
+     */
+    protected $damage;
+
+    /**
+     * The value for the is_trap field.
+     *
+     * @var        boolean
+     */
+    protected $is_trap;
+
+    /**
      * @var        ObjectCollection|ChildScene[] Collection to store aggregation of ChildScene objects.
      */
-    protected $collScenes;
-    protected $collScenesPartial;
+    protected $collScenesRelatedByItemId;
+    protected $collScenesRelatedByItemIdPartial;
+
+    /**
+     * @var        ObjectCollection|ChildScene[] Collection to store aggregation of ChildScene objects.
+     */
+    protected $collScenesRelatedByTrapId;
+    protected $collScenesRelatedByTrapIdPartial;
 
     /**
      * Flag to prevent endless save loop, if this object is referenced
@@ -103,7 +123,13 @@ abstract class Item implements ActiveRecordInterface
      * An array of objects scheduled for deletion.
      * @var ObjectCollection|ChildScene[]
      */
-    protected $scenesScheduledForDeletion = null;
+    protected $scenesRelatedByItemIdScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildScene[]
+     */
+    protected $scenesRelatedByTrapIdScheduledForDeletion = null;
 
     /**
      * Initializes internal state of Base\Item object.
@@ -361,6 +387,36 @@ abstract class Item implements ActiveRecordInterface
     }
 
     /**
+     * Get the [damage] column value.
+     *
+     * @return int
+     */
+    public function getDamage()
+    {
+        return $this->damage;
+    }
+
+    /**
+     * Get the [is_trap] column value.
+     *
+     * @return boolean
+     */
+    public function getIsTrap()
+    {
+        return $this->is_trap;
+    }
+
+    /**
+     * Get the [is_trap] column value.
+     *
+     * @return boolean
+     */
+    public function isTrap()
+    {
+        return $this->getIsTrap();
+    }
+
+    /**
      * Set the value of [id] column.
      *
      * @param int $v new value
@@ -421,6 +477,54 @@ abstract class Item implements ActiveRecordInterface
     } // setDescription()
 
     /**
+     * Set the value of [damage] column.
+     *
+     * @param int $v new value
+     * @return $this|\Item The current object (for fluent API support)
+     */
+    public function setDamage($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->damage !== $v) {
+            $this->damage = $v;
+            $this->modifiedColumns[ItemTableMap::COL_DAMAGE] = true;
+        }
+
+        return $this;
+    } // setDamage()
+
+    /**
+     * Sets the value of the [is_trap] column.
+     * Non-boolean arguments are converted using the following rules:
+     *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *   * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     * Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     *
+     * @param  boolean|integer|string $v The new value
+     * @return $this|\Item The current object (for fluent API support)
+     */
+    public function setIsTrap($v)
+    {
+        if ($v !== null) {
+            if (is_string($v)) {
+                $v = in_array(strtolower($v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            } else {
+                $v = (boolean) $v;
+            }
+        }
+
+        if ($this->is_trap !== $v) {
+            $this->is_trap = $v;
+            $this->modifiedColumns[ItemTableMap::COL_IS_TRAP] = true;
+        }
+
+        return $this;
+    } // setIsTrap()
+
+    /**
      * Indicates whether the columns in this object are only set to default values.
      *
      * This method can be used in conjunction with isModified() to indicate whether an object is both
@@ -464,6 +568,12 @@ abstract class Item implements ActiveRecordInterface
 
             $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : ItemTableMap::translateFieldName('Description', TableMap::TYPE_PHPNAME, $indexType)];
             $this->description = (null !== $col) ? (string) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 3 + $startcol : ItemTableMap::translateFieldName('Damage', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->damage = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : ItemTableMap::translateFieldName('IsTrap', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->is_trap = (null !== $col) ? (boolean) $col : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -472,7 +582,7 @@ abstract class Item implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 3; // 3 = ItemTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 5; // 5 = ItemTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\Item'), 0, $e);
@@ -533,7 +643,9 @@ abstract class Item implements ActiveRecordInterface
 
         if ($deep) {  // also de-associate any related objects?
 
-            $this->collScenes = null;
+            $this->collScenesRelatedByItemId = null;
+
+            $this->collScenesRelatedByTrapId = null;
 
         } // if (deep)
     }
@@ -649,17 +761,34 @@ abstract class Item implements ActiveRecordInterface
                 $this->resetModified();
             }
 
-            if ($this->scenesScheduledForDeletion !== null) {
-                if (!$this->scenesScheduledForDeletion->isEmpty()) {
+            if ($this->scenesRelatedByItemIdScheduledForDeletion !== null) {
+                if (!$this->scenesRelatedByItemIdScheduledForDeletion->isEmpty()) {
                     \SceneQuery::create()
-                        ->filterByPrimaryKeys($this->scenesScheduledForDeletion->getPrimaryKeys(false))
+                        ->filterByPrimaryKeys($this->scenesRelatedByItemIdScheduledForDeletion->getPrimaryKeys(false))
                         ->delete($con);
-                    $this->scenesScheduledForDeletion = null;
+                    $this->scenesRelatedByItemIdScheduledForDeletion = null;
                 }
             }
 
-            if ($this->collScenes !== null) {
-                foreach ($this->collScenes as $referrerFK) {
+            if ($this->collScenesRelatedByItemId !== null) {
+                foreach ($this->collScenesRelatedByItemId as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->scenesRelatedByTrapIdScheduledForDeletion !== null) {
+                if (!$this->scenesRelatedByTrapIdScheduledForDeletion->isEmpty()) {
+                    \SceneQuery::create()
+                        ->filterByPrimaryKeys($this->scenesRelatedByTrapIdScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->scenesRelatedByTrapIdScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collScenesRelatedByTrapId !== null) {
+                foreach ($this->collScenesRelatedByTrapId as $referrerFK) {
                     if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
                         $affectedRows += $referrerFK->save($con);
                     }
@@ -701,6 +830,12 @@ abstract class Item implements ActiveRecordInterface
         if ($this->isColumnModified(ItemTableMap::COL_DESCRIPTION)) {
             $modifiedColumns[':p' . $index++]  = 'description';
         }
+        if ($this->isColumnModified(ItemTableMap::COL_DAMAGE)) {
+            $modifiedColumns[':p' . $index++]  = 'damage';
+        }
+        if ($this->isColumnModified(ItemTableMap::COL_IS_TRAP)) {
+            $modifiedColumns[':p' . $index++]  = 'is_trap';
+        }
 
         $sql = sprintf(
             'INSERT INTO item (%s) VALUES (%s)',
@@ -720,6 +855,12 @@ abstract class Item implements ActiveRecordInterface
                         break;
                     case 'description':
                         $stmt->bindValue($identifier, $this->description, PDO::PARAM_STR);
+                        break;
+                    case 'damage':
+                        $stmt->bindValue($identifier, $this->damage, PDO::PARAM_INT);
+                        break;
+                    case 'is_trap':
+                        $stmt->bindValue($identifier, (int) $this->is_trap, PDO::PARAM_INT);
                         break;
                 }
             }
@@ -792,6 +933,12 @@ abstract class Item implements ActiveRecordInterface
             case 2:
                 return $this->getDescription();
                 break;
+            case 3:
+                return $this->getDamage();
+                break;
+            case 4:
+                return $this->getIsTrap();
+                break;
             default:
                 return null;
                 break;
@@ -825,6 +972,8 @@ abstract class Item implements ActiveRecordInterface
             $keys[0] => $this->getId(),
             $keys[1] => $this->getName(),
             $keys[2] => $this->getDescription(),
+            $keys[3] => $this->getDamage(),
+            $keys[4] => $this->getIsTrap(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -832,7 +981,7 @@ abstract class Item implements ActiveRecordInterface
         }
 
         if ($includeForeignObjects) {
-            if (null !== $this->collScenes) {
+            if (null !== $this->collScenesRelatedByItemId) {
 
                 switch ($keyType) {
                     case TableMap::TYPE_CAMELNAME:
@@ -845,7 +994,22 @@ abstract class Item implements ActiveRecordInterface
                         $key = 'Scenes';
                 }
 
-                $result[$key] = $this->collScenes->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+                $result[$key] = $this->collScenesRelatedByItemId->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collScenesRelatedByTrapId) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'scenes';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'scenes';
+                        break;
+                    default:
+                        $key = 'Scenes';
+                }
+
+                $result[$key] = $this->collScenesRelatedByTrapId->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
         }
 
@@ -890,6 +1054,12 @@ abstract class Item implements ActiveRecordInterface
             case 2:
                 $this->setDescription($value);
                 break;
+            case 3:
+                $this->setDamage($value);
+                break;
+            case 4:
+                $this->setIsTrap($value);
+                break;
         } // switch()
 
         return $this;
@@ -924,6 +1094,12 @@ abstract class Item implements ActiveRecordInterface
         }
         if (array_key_exists($keys[2], $arr)) {
             $this->setDescription($arr[$keys[2]]);
+        }
+        if (array_key_exists($keys[3], $arr)) {
+            $this->setDamage($arr[$keys[3]]);
+        }
+        if (array_key_exists($keys[4], $arr)) {
+            $this->setIsTrap($arr[$keys[4]]);
         }
     }
 
@@ -974,6 +1150,12 @@ abstract class Item implements ActiveRecordInterface
         }
         if ($this->isColumnModified(ItemTableMap::COL_DESCRIPTION)) {
             $criteria->add(ItemTableMap::COL_DESCRIPTION, $this->description);
+        }
+        if ($this->isColumnModified(ItemTableMap::COL_DAMAGE)) {
+            $criteria->add(ItemTableMap::COL_DAMAGE, $this->damage);
+        }
+        if ($this->isColumnModified(ItemTableMap::COL_IS_TRAP)) {
+            $criteria->add(ItemTableMap::COL_IS_TRAP, $this->is_trap);
         }
 
         return $criteria;
@@ -1063,15 +1245,23 @@ abstract class Item implements ActiveRecordInterface
     {
         $copyObj->setName($this->getName());
         $copyObj->setDescription($this->getDescription());
+        $copyObj->setDamage($this->getDamage());
+        $copyObj->setIsTrap($this->getIsTrap());
 
         if ($deepCopy) {
             // important: temporarily setNew(false) because this affects the behavior of
             // the getter/setter methods for fkey referrer objects.
             $copyObj->setNew(false);
 
-            foreach ($this->getScenes() as $relObj) {
+            foreach ($this->getScenesRelatedByItemId() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
-                    $copyObj->addScene($relObj->copy($deepCopy));
+                    $copyObj->addSceneRelatedByItemId($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getScenesRelatedByTrapId() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addSceneRelatedByTrapId($relObj->copy($deepCopy));
                 }
             }
 
@@ -1116,38 +1306,42 @@ abstract class Item implements ActiveRecordInterface
      */
     public function initRelation($relationName)
     {
-        if ('Scene' == $relationName) {
-            $this->initScenes();
+        if ('SceneRelatedByItemId' == $relationName) {
+            $this->initScenesRelatedByItemId();
+            return;
+        }
+        if ('SceneRelatedByTrapId' == $relationName) {
+            $this->initScenesRelatedByTrapId();
             return;
         }
     }
 
     /**
-     * Clears out the collScenes collection
+     * Clears out the collScenesRelatedByItemId collection
      *
      * This does not modify the database; however, it will remove any associated objects, causing
      * them to be refetched by subsequent calls to accessor method.
      *
      * @return void
-     * @see        addScenes()
+     * @see        addScenesRelatedByItemId()
      */
-    public function clearScenes()
+    public function clearScenesRelatedByItemId()
     {
-        $this->collScenes = null; // important to set this to NULL since that means it is uninitialized
+        $this->collScenesRelatedByItemId = null; // important to set this to NULL since that means it is uninitialized
     }
 
     /**
-     * Reset is the collScenes collection loaded partially.
+     * Reset is the collScenesRelatedByItemId collection loaded partially.
      */
-    public function resetPartialScenes($v = true)
+    public function resetPartialScenesRelatedByItemId($v = true)
     {
-        $this->collScenesPartial = $v;
+        $this->collScenesRelatedByItemIdPartial = $v;
     }
 
     /**
-     * Initializes the collScenes collection.
+     * Initializes the collScenesRelatedByItemId collection.
      *
-     * By default this just sets the collScenes collection to an empty array (like clearcollScenes());
+     * By default this just sets the collScenesRelatedByItemId collection to an empty array (like clearcollScenesRelatedByItemId());
      * however, you may wish to override this method in your stub class to provide setting appropriate
      * to your application -- for example, setting the initial array to the values stored in database.
      *
@@ -1156,16 +1350,16 @@ abstract class Item implements ActiveRecordInterface
      *
      * @return void
      */
-    public function initScenes($overrideExisting = true)
+    public function initScenesRelatedByItemId($overrideExisting = true)
     {
-        if (null !== $this->collScenes && !$overrideExisting) {
+        if (null !== $this->collScenesRelatedByItemId && !$overrideExisting) {
             return;
         }
 
         $collectionClassName = SceneTableMap::getTableMap()->getCollectionClassName();
 
-        $this->collScenes = new $collectionClassName;
-        $this->collScenes->setModel('\Scene');
+        $this->collScenesRelatedByItemId = new $collectionClassName;
+        $this->collScenesRelatedByItemId->setModel('\Scene');
     }
 
     /**
@@ -1182,48 +1376,48 @@ abstract class Item implements ActiveRecordInterface
      * @return ObjectCollection|ChildScene[] List of ChildScene objects
      * @throws PropelException
      */
-    public function getScenes(Criteria $criteria = null, ConnectionInterface $con = null)
+    public function getScenesRelatedByItemId(Criteria $criteria = null, ConnectionInterface $con = null)
     {
-        $partial = $this->collScenesPartial && !$this->isNew();
-        if (null === $this->collScenes || null !== $criteria  || $partial) {
-            if ($this->isNew() && null === $this->collScenes) {
+        $partial = $this->collScenesRelatedByItemIdPartial && !$this->isNew();
+        if (null === $this->collScenesRelatedByItemId || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collScenesRelatedByItemId) {
                 // return empty collection
-                $this->initScenes();
+                $this->initScenesRelatedByItemId();
             } else {
-                $collScenes = ChildSceneQuery::create(null, $criteria)
+                $collScenesRelatedByItemId = ChildSceneQuery::create(null, $criteria)
                     ->filterByItem($this)
                     ->find($con);
 
                 if (null !== $criteria) {
-                    if (false !== $this->collScenesPartial && count($collScenes)) {
-                        $this->initScenes(false);
+                    if (false !== $this->collScenesRelatedByItemIdPartial && count($collScenesRelatedByItemId)) {
+                        $this->initScenesRelatedByItemId(false);
 
-                        foreach ($collScenes as $obj) {
-                            if (false == $this->collScenes->contains($obj)) {
-                                $this->collScenes->append($obj);
+                        foreach ($collScenesRelatedByItemId as $obj) {
+                            if (false == $this->collScenesRelatedByItemId->contains($obj)) {
+                                $this->collScenesRelatedByItemId->append($obj);
                             }
                         }
 
-                        $this->collScenesPartial = true;
+                        $this->collScenesRelatedByItemIdPartial = true;
                     }
 
-                    return $collScenes;
+                    return $collScenesRelatedByItemId;
                 }
 
-                if ($partial && $this->collScenes) {
-                    foreach ($this->collScenes as $obj) {
+                if ($partial && $this->collScenesRelatedByItemId) {
+                    foreach ($this->collScenesRelatedByItemId as $obj) {
                         if ($obj->isNew()) {
-                            $collScenes[] = $obj;
+                            $collScenesRelatedByItemId[] = $obj;
                         }
                     }
                 }
 
-                $this->collScenes = $collScenes;
-                $this->collScenesPartial = false;
+                $this->collScenesRelatedByItemId = $collScenesRelatedByItemId;
+                $this->collScenesRelatedByItemIdPartial = false;
             }
         }
 
-        return $this->collScenes;
+        return $this->collScenesRelatedByItemId;
     }
 
     /**
@@ -1232,29 +1426,29 @@ abstract class Item implements ActiveRecordInterface
      * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
      * and new objects from the given Propel collection.
      *
-     * @param      Collection $scenes A Propel collection.
+     * @param      Collection $scenesRelatedByItemId A Propel collection.
      * @param      ConnectionInterface $con Optional connection object
      * @return $this|ChildItem The current object (for fluent API support)
      */
-    public function setScenes(Collection $scenes, ConnectionInterface $con = null)
+    public function setScenesRelatedByItemId(Collection $scenesRelatedByItemId, ConnectionInterface $con = null)
     {
-        /** @var ChildScene[] $scenesToDelete */
-        $scenesToDelete = $this->getScenes(new Criteria(), $con)->diff($scenes);
+        /** @var ChildScene[] $scenesRelatedByItemIdToDelete */
+        $scenesRelatedByItemIdToDelete = $this->getScenesRelatedByItemId(new Criteria(), $con)->diff($scenesRelatedByItemId);
 
 
-        $this->scenesScheduledForDeletion = $scenesToDelete;
+        $this->scenesRelatedByItemIdScheduledForDeletion = $scenesRelatedByItemIdToDelete;
 
-        foreach ($scenesToDelete as $sceneRemoved) {
-            $sceneRemoved->setItem(null);
+        foreach ($scenesRelatedByItemIdToDelete as $sceneRelatedByItemIdRemoved) {
+            $sceneRelatedByItemIdRemoved->setItem(null);
         }
 
-        $this->collScenes = null;
-        foreach ($scenes as $scene) {
-            $this->addScene($scene);
+        $this->collScenesRelatedByItemId = null;
+        foreach ($scenesRelatedByItemId as $sceneRelatedByItemId) {
+            $this->addSceneRelatedByItemId($sceneRelatedByItemId);
         }
 
-        $this->collScenes = $scenes;
-        $this->collScenesPartial = false;
+        $this->collScenesRelatedByItemId = $scenesRelatedByItemId;
+        $this->collScenesRelatedByItemIdPartial = false;
 
         return $this;
     }
@@ -1268,16 +1462,16 @@ abstract class Item implements ActiveRecordInterface
      * @return int             Count of related Scene objects.
      * @throws PropelException
      */
-    public function countScenes(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    public function countScenesRelatedByItemId(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
     {
-        $partial = $this->collScenesPartial && !$this->isNew();
-        if (null === $this->collScenes || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collScenes) {
+        $partial = $this->collScenesRelatedByItemIdPartial && !$this->isNew();
+        if (null === $this->collScenesRelatedByItemId || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collScenesRelatedByItemId) {
                 return 0;
             }
 
             if ($partial && !$criteria) {
-                return count($this->getScenes());
+                return count($this->getScenesRelatedByItemId());
             }
 
             $query = ChildSceneQuery::create(null, $criteria);
@@ -1290,7 +1484,7 @@ abstract class Item implements ActiveRecordInterface
                 ->count($con);
         }
 
-        return count($this->collScenes);
+        return count($this->collScenesRelatedByItemId);
     }
 
     /**
@@ -1300,18 +1494,18 @@ abstract class Item implements ActiveRecordInterface
      * @param  ChildScene $l ChildScene
      * @return $this|\Item The current object (for fluent API support)
      */
-    public function addScene(ChildScene $l)
+    public function addSceneRelatedByItemId(ChildScene $l)
     {
-        if ($this->collScenes === null) {
-            $this->initScenes();
-            $this->collScenesPartial = true;
+        if ($this->collScenesRelatedByItemId === null) {
+            $this->initScenesRelatedByItemId();
+            $this->collScenesRelatedByItemIdPartial = true;
         }
 
-        if (!$this->collScenes->contains($l)) {
-            $this->doAddScene($l);
+        if (!$this->collScenesRelatedByItemId->contains($l)) {
+            $this->doAddSceneRelatedByItemId($l);
 
-            if ($this->scenesScheduledForDeletion and $this->scenesScheduledForDeletion->contains($l)) {
-                $this->scenesScheduledForDeletion->remove($this->scenesScheduledForDeletion->search($l));
+            if ($this->scenesRelatedByItemIdScheduledForDeletion and $this->scenesRelatedByItemIdScheduledForDeletion->contains($l)) {
+                $this->scenesRelatedByItemIdScheduledForDeletion->remove($this->scenesRelatedByItemIdScheduledForDeletion->search($l));
             }
         }
 
@@ -1319,57 +1513,257 @@ abstract class Item implements ActiveRecordInterface
     }
 
     /**
-     * @param ChildScene $scene The ChildScene object to add.
+     * @param ChildScene $sceneRelatedByItemId The ChildScene object to add.
      */
-    protected function doAddScene(ChildScene $scene)
+    protected function doAddSceneRelatedByItemId(ChildScene $sceneRelatedByItemId)
     {
-        $this->collScenes[]= $scene;
-        $scene->setItem($this);
+        $this->collScenesRelatedByItemId[]= $sceneRelatedByItemId;
+        $sceneRelatedByItemId->setItem($this);
     }
 
     /**
-     * @param  ChildScene $scene The ChildScene object to remove.
+     * @param  ChildScene $sceneRelatedByItemId The ChildScene object to remove.
      * @return $this|ChildItem The current object (for fluent API support)
      */
-    public function removeScene(ChildScene $scene)
+    public function removeSceneRelatedByItemId(ChildScene $sceneRelatedByItemId)
     {
-        if ($this->getScenes()->contains($scene)) {
-            $pos = $this->collScenes->search($scene);
-            $this->collScenes->remove($pos);
-            if (null === $this->scenesScheduledForDeletion) {
-                $this->scenesScheduledForDeletion = clone $this->collScenes;
-                $this->scenesScheduledForDeletion->clear();
+        if ($this->getScenesRelatedByItemId()->contains($sceneRelatedByItemId)) {
+            $pos = $this->collScenesRelatedByItemId->search($sceneRelatedByItemId);
+            $this->collScenesRelatedByItemId->remove($pos);
+            if (null === $this->scenesRelatedByItemIdScheduledForDeletion) {
+                $this->scenesRelatedByItemIdScheduledForDeletion = clone $this->collScenesRelatedByItemId;
+                $this->scenesRelatedByItemIdScheduledForDeletion->clear();
             }
-            $this->scenesScheduledForDeletion[]= clone $scene;
-            $scene->setItem(null);
+            $this->scenesRelatedByItemIdScheduledForDeletion[]= clone $sceneRelatedByItemId;
+            $sceneRelatedByItemId->setItem(null);
         }
 
         return $this;
     }
 
+    /**
+     * Clears out the collScenesRelatedByTrapId collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addScenesRelatedByTrapId()
+     */
+    public function clearScenesRelatedByTrapId()
+    {
+        $this->collScenesRelatedByTrapId = null; // important to set this to NULL since that means it is uninitialized
+    }
 
     /**
-     * If this collection has already been initialized with
-     * an identical criteria, it returns the collection.
-     * Otherwise if this Item is new, it will return
-     * an empty collection; or if this Item has previously
-     * been saved, it will retrieve related Scenes from storage.
+     * Reset is the collScenesRelatedByTrapId collection loaded partially.
+     */
+    public function resetPartialScenesRelatedByTrapId($v = true)
+    {
+        $this->collScenesRelatedByTrapIdPartial = $v;
+    }
+
+    /**
+     * Initializes the collScenesRelatedByTrapId collection.
      *
-     * This method is protected by default in order to keep the public
-     * api reasonable.  You can provide public methods for those you
-     * actually need in Item.
+     * By default this just sets the collScenesRelatedByTrapId collection to an empty array (like clearcollScenesRelatedByTrapId());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initScenesRelatedByTrapId($overrideExisting = true)
+    {
+        if (null !== $this->collScenesRelatedByTrapId && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = SceneTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collScenesRelatedByTrapId = new $collectionClassName;
+        $this->collScenesRelatedByTrapId->setModel('\Scene');
+    }
+
+    /**
+     * Gets an array of ChildScene objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildItem is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
      *
      * @param      Criteria $criteria optional Criteria object to narrow the query
      * @param      ConnectionInterface $con optional connection object
-     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
      * @return ObjectCollection|ChildScene[] List of ChildScene objects
+     * @throws PropelException
      */
-    public function getScenesJoinTrap(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    public function getScenesRelatedByTrapId(Criteria $criteria = null, ConnectionInterface $con = null)
     {
-        $query = ChildSceneQuery::create(null, $criteria);
-        $query->joinWith('Trap', $joinBehavior);
+        $partial = $this->collScenesRelatedByTrapIdPartial && !$this->isNew();
+        if (null === $this->collScenesRelatedByTrapId || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collScenesRelatedByTrapId) {
+                // return empty collection
+                $this->initScenesRelatedByTrapId();
+            } else {
+                $collScenesRelatedByTrapId = ChildSceneQuery::create(null, $criteria)
+                    ->filterByTrap($this)
+                    ->find($con);
 
-        return $this->getScenes($query, $con);
+                if (null !== $criteria) {
+                    if (false !== $this->collScenesRelatedByTrapIdPartial && count($collScenesRelatedByTrapId)) {
+                        $this->initScenesRelatedByTrapId(false);
+
+                        foreach ($collScenesRelatedByTrapId as $obj) {
+                            if (false == $this->collScenesRelatedByTrapId->contains($obj)) {
+                                $this->collScenesRelatedByTrapId->append($obj);
+                            }
+                        }
+
+                        $this->collScenesRelatedByTrapIdPartial = true;
+                    }
+
+                    return $collScenesRelatedByTrapId;
+                }
+
+                if ($partial && $this->collScenesRelatedByTrapId) {
+                    foreach ($this->collScenesRelatedByTrapId as $obj) {
+                        if ($obj->isNew()) {
+                            $collScenesRelatedByTrapId[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collScenesRelatedByTrapId = $collScenesRelatedByTrapId;
+                $this->collScenesRelatedByTrapIdPartial = false;
+            }
+        }
+
+        return $this->collScenesRelatedByTrapId;
+    }
+
+    /**
+     * Sets a collection of ChildScene objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $scenesRelatedByTrapId A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildItem The current object (for fluent API support)
+     */
+    public function setScenesRelatedByTrapId(Collection $scenesRelatedByTrapId, ConnectionInterface $con = null)
+    {
+        /** @var ChildScene[] $scenesRelatedByTrapIdToDelete */
+        $scenesRelatedByTrapIdToDelete = $this->getScenesRelatedByTrapId(new Criteria(), $con)->diff($scenesRelatedByTrapId);
+
+
+        $this->scenesRelatedByTrapIdScheduledForDeletion = $scenesRelatedByTrapIdToDelete;
+
+        foreach ($scenesRelatedByTrapIdToDelete as $sceneRelatedByTrapIdRemoved) {
+            $sceneRelatedByTrapIdRemoved->setTrap(null);
+        }
+
+        $this->collScenesRelatedByTrapId = null;
+        foreach ($scenesRelatedByTrapId as $sceneRelatedByTrapId) {
+            $this->addSceneRelatedByTrapId($sceneRelatedByTrapId);
+        }
+
+        $this->collScenesRelatedByTrapId = $scenesRelatedByTrapId;
+        $this->collScenesRelatedByTrapIdPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Scene objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related Scene objects.
+     * @throws PropelException
+     */
+    public function countScenesRelatedByTrapId(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collScenesRelatedByTrapIdPartial && !$this->isNew();
+        if (null === $this->collScenesRelatedByTrapId || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collScenesRelatedByTrapId) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getScenesRelatedByTrapId());
+            }
+
+            $query = ChildSceneQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByTrap($this)
+                ->count($con);
+        }
+
+        return count($this->collScenesRelatedByTrapId);
+    }
+
+    /**
+     * Method called to associate a ChildScene object to this object
+     * through the ChildScene foreign key attribute.
+     *
+     * @param  ChildScene $l ChildScene
+     * @return $this|\Item The current object (for fluent API support)
+     */
+    public function addSceneRelatedByTrapId(ChildScene $l)
+    {
+        if ($this->collScenesRelatedByTrapId === null) {
+            $this->initScenesRelatedByTrapId();
+            $this->collScenesRelatedByTrapIdPartial = true;
+        }
+
+        if (!$this->collScenesRelatedByTrapId->contains($l)) {
+            $this->doAddSceneRelatedByTrapId($l);
+
+            if ($this->scenesRelatedByTrapIdScheduledForDeletion and $this->scenesRelatedByTrapIdScheduledForDeletion->contains($l)) {
+                $this->scenesRelatedByTrapIdScheduledForDeletion->remove($this->scenesRelatedByTrapIdScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildScene $sceneRelatedByTrapId The ChildScene object to add.
+     */
+    protected function doAddSceneRelatedByTrapId(ChildScene $sceneRelatedByTrapId)
+    {
+        $this->collScenesRelatedByTrapId[]= $sceneRelatedByTrapId;
+        $sceneRelatedByTrapId->setTrap($this);
+    }
+
+    /**
+     * @param  ChildScene $sceneRelatedByTrapId The ChildScene object to remove.
+     * @return $this|ChildItem The current object (for fluent API support)
+     */
+    public function removeSceneRelatedByTrapId(ChildScene $sceneRelatedByTrapId)
+    {
+        if ($this->getScenesRelatedByTrapId()->contains($sceneRelatedByTrapId)) {
+            $pos = $this->collScenesRelatedByTrapId->search($sceneRelatedByTrapId);
+            $this->collScenesRelatedByTrapId->remove($pos);
+            if (null === $this->scenesRelatedByTrapIdScheduledForDeletion) {
+                $this->scenesRelatedByTrapIdScheduledForDeletion = clone $this->collScenesRelatedByTrapId;
+                $this->scenesRelatedByTrapIdScheduledForDeletion->clear();
+            }
+            $this->scenesRelatedByTrapIdScheduledForDeletion[]= clone $sceneRelatedByTrapId;
+            $sceneRelatedByTrapId->setTrap(null);
+        }
+
+        return $this;
     }
 
     /**
@@ -1382,6 +1776,8 @@ abstract class Item implements ActiveRecordInterface
         $this->id = null;
         $this->name = null;
         $this->description = null;
+        $this->damage = null;
+        $this->is_trap = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
         $this->resetModified();
@@ -1400,14 +1796,20 @@ abstract class Item implements ActiveRecordInterface
     public function clearAllReferences($deep = false)
     {
         if ($deep) {
-            if ($this->collScenes) {
-                foreach ($this->collScenes as $o) {
+            if ($this->collScenesRelatedByItemId) {
+                foreach ($this->collScenesRelatedByItemId as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
+            if ($this->collScenesRelatedByTrapId) {
+                foreach ($this->collScenesRelatedByTrapId as $o) {
                     $o->clearAllReferences($deep);
                 }
             }
         } // if ($deep)
 
-        $this->collScenes = null;
+        $this->collScenesRelatedByItemId = null;
+        $this->collScenesRelatedByTrapId = null;
     }
 
     /**
