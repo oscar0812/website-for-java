@@ -292,6 +292,8 @@
   <script src="js/jquery-ui.js"></script>
   <script src="js/bootstrap.bundle.min.js"></script>
   <script src="js/snackbar.min.js"></script>
+  <script src="js/js.cookie.js"></script>
+
   <script src="js/script.js"></script>
 </body>
 

@@ -35,10 +35,15 @@ $(function() {
   });
 
   toggle = $('#switch');
+
+  // set toggle from cookie on load
+  toggle.prop("checked", Cookies.get('checked') == "true");
+  
   toggle.on('change', function() {
     if (!toggle.prop("checked")) {
-      //$('#sortable li').css('background-color', 'white');
+      $('#sortable li').css('background-color', 'white');
     }
+    Cookies.set('checked', toggle.prop("checked"));
   })
   // when li is hovered
 
