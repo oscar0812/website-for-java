@@ -83,7 +83,11 @@ $app->group('', function () use ($app) {
             $scene->setItemId($params['item_choice']);
             $scene->setTrapId($params['trap_choice']);
             $scene->setDescription($params['description']);
-            $scene->setParentSceneId($params['parent_choice']);
+            if (isset($params['parent_choice'])) {
+                $scene->setParentSceneId($params['parent_choice']);
+            } else {
+                $scene->setParentSceneId(0);
+            }
 
             $scene->save();
             if (!isset($params['scene_id'])) {
