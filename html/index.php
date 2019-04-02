@@ -1,7 +1,4 @@
 <?php
-
-use app\controllers\LoggedInController;
-
 require '../vendor/autoload.php';
 
 // adding an external config file
