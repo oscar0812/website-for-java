@@ -51,11 +51,11 @@ $(function() {
       // show all the parents in green, and children in red
       id = $(this).attr('data-id');
       // set the children to red
-      children = $('#sortable li[data-parent-id="'+id+'"]');
+      children = $('#sortable li[data-parent-id="' + id + '"]');
       children.css('background-color', '#f48fb1');
 
       pId = $(this).attr('data-parent-id');
-      parents = $('#sortable li[data-id="'+pId+'"]');
+      parents = $('#sortable li[data-id="' + pId + '"]');
       parents.css('background-color', '#69f0ae');
     }
   });
