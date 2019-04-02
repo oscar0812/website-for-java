@@ -105,7 +105,15 @@ $app->post('/delete-scene', function ($request, $response, $args) {
             return $response->withJson(['success'=>false, 'msg'=>'Null Scene']);
         }
 
+        $children = \SceneQuery::create()->findByParentSceneId($scene->getId());
+
+        foreach ($children as $child) {
+            $child->setParentSceneId(0);
+        }
+
         $scene->delete();
+        $children->save();
+
         return $response->withJson(['success'=>true]);
     }
 

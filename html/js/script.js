@@ -13,7 +13,7 @@ function ajaxForm(form, callback) {
 
 $(function() {
   $('[data-toggle="tooltip"]').tooltip();
-  
+
   $("#sortable").sortable({
     handle: '.fa-arrows',
     update: function(item, ui) {
@@ -37,7 +37,7 @@ $(function() {
   toggle = $('#switch');
   toggle.on('change', function() {
     if (!toggle.prop("checked")) {
-      $('#sortable li').css('background-color', 'white');
+      //$('#sortable li').css('background-color', 'white');
     }
   })
   // when li is hovered
@@ -54,17 +54,18 @@ $(function() {
       children.css('background-color', '#f48fb1');
 
       pId = $(this).attr('data-parent-id');
-      parents = $('#sortable li[data-id="' + pId + '"]');
-      parents.css('background-color', '#69f0ae');
+      ps = $('#sortable li[data-id="' + pId + '"]');
+      ps.css('background-color', '#69f0ae');
 
       $(this).css('background-color', '#e0e0e0');
     }
   });
 
   function loadValues(id) {
-    items = $('[name="item_choice"]');
-    traps = $('[name="trap_choice"]');
-    parents = $('[name="parent_choice"]');
+    modal = id == 0 ? $('#newSceneModal') : $('#editSceneModal');
+    items = modal.find('[name="item_choice"]');
+    traps = modal.find('[name="trap_choice"]');
+    parents = modal.find('[name="parent_choice"]');
 
     url = id == 0 ? $('body').attr('data-json') : $('body').attr('data-scene-info');
     method = id == 0 ? "get" : "post";
